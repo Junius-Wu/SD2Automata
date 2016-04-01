@@ -1,0 +1,117 @@
+package uml;
+
+public class UppaalTransition 
+{
+	int sourceId;
+	int targetId;
+	int id;
+	String Kind = "synchronisation";
+	String nameText;
+	String nameT="null";
+	String nameS="null";
+	String T1 = "0";
+	String T2 = "0";
+	String SEQDC;
+	String SEQDO;
+	String SEQTC;
+	String SEQTO;
+	String DCBM;
+	public String getSEQDC() {
+		return SEQDC;
+	}
+	public void setSEQDC(String sEQDC) {
+		SEQDC = sEQDC;
+	}
+	public String getSEQDO() {
+		return SEQDO;
+	}
+	public void setSEQDO(String sEQDO) {
+		SEQDO = sEQDO;
+	}
+	public String getSEQTC() {
+		return SEQTC;
+	}
+	public void setSEQTC(String sEQTC) {
+		SEQTC = sEQTC;
+	}
+	public String getSEQTO() {
+		return SEQTO;
+	}
+	public void setSEQTO(String sEQTO) {
+		SEQTO = sEQTO;
+	}
+	public String getDCBM() {
+		return DCBM;
+	}
+	public void setDCBM(String dCBM) {
+		DCBM = dCBM;
+	}
+	public String getT1() {
+		return T1;
+	}
+	public void setT1(String t1) {
+		T1 = t1;
+	}
+	public String getT2() {
+		return T2;
+	}
+	public void setT2(String t2) {
+		T2 = t2;
+	}
+	public int getId() 
+	{
+		return id;
+	}
+	public void setId(int id) 
+	{
+		this.id=id;
+	}
+	public int getSourceId() 
+	{
+		return sourceId;
+	}
+	public void setSourceId(int sourceId) 
+	{
+		this.sourceId = sourceId;
+	}
+	public int getTargetId() 
+	{
+		return targetId;
+	}
+	public void setTargetId(int targetId) 
+	{
+		this.targetId = targetId;
+	}
+	public String getKind() 
+	{
+		return Kind;
+	}
+	public void setKind(String kind) 
+	{
+		Kind = kind;
+	}
+	public String getNameText() 
+	{
+		return nameText;
+	}
+	public void setNameText(String nameText) 
+	{
+		this.nameText = nameText;
+	}
+	public String getNameS() 
+	{
+		return nameS;
+	}
+	public void setNameS(String nameS) 
+	{
+		this.nameS = nameS;
+	}
+	public String getNameT() 
+	{
+		return nameT;
+	}
+	public void setNameT(String nameT) 
+	{
+		this.nameT = nameT;
+	}
+}
