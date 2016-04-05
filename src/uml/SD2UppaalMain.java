@@ -269,7 +269,7 @@ public class SD2UppaalMain {
 		    	
 		    	for(int i = 0;i<table.size();i++)
 		    	{
-		    		System.out.print(i+":");
+		    		System.out.print(String.format("%-2d:", i));
 		    		for(int c = 0;c<table.get(i).size();c++)
 		    		{
 		    			if(i>=1&&table.get(i-1).get(c).getFragType().equals("alt")&&
@@ -286,7 +286,7 @@ public class SD2UppaalMain {
 	    						)//同一个par中的不同操作域 是交接处的下一个
 		    			parEndTo[i] = findOutOfAlt(i,c);//找到出par的位置  findOutOfAlt适用于par
 		    			
-		    			System.out.print(table.get(i).get(c).getFragType()+" ");
+		    			System.out.print(String.format("%-6s", table.get(i).get(c).getFragType()));
 		    		}
 		    		System.out.println();
 		    	}
@@ -461,9 +461,9 @@ public class SD2UppaalMain {
 	//打印map
 			    for(int i=0;i<locationList.size()+1;i++)		
 			    {	
-			    	System.out.print(i+"：  ");
+			    	System.out.print(String.format("%-2d:", i));
 			    	for(int j=0;j<locationList.size()+1;j++)
-			    		System.out.print(map[i][j]+"  ");
+			    		System.out.print(String.format("%-3d", map[i][j]));
 			    	System.out.println();
 			    }
 			   System.out.println("------------------分割线--------------------");
