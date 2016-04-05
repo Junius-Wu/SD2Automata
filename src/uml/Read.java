@@ -16,8 +16,9 @@ public class Read
 	ArrayList<MessageComplete> umlMessageComplete=new ArrayList<MessageComplete>();
 	ArrayList<WJFragment> umlFragment=new ArrayList<WJFragment>();
 	ArrayList<WJFragment> umlFragmentInner=new ArrayList<WJFragment>();
-	ArrayList<WJMessage> umlMsgFragment=new ArrayList<WJMessage>();
+	ArrayList<WJMessage> umlMessageFinal=new ArrayList<WJMessage>();
 	ArrayList<WJDiagramsData> umlAllDiagramData = new ArrayList<WJDiagramsData>();
+	ArrayList<REF> umlREF = new ArrayList<REF>();
 	
 	HashMap<String , String> findAltsFather = new HashMap<String , String>();
 	public boolean hasNoLifeline()
@@ -28,18 +29,60 @@ public class Read
 			return false;	
 	}
 	
-	public  void load(Element root) throws Exception
+	public void load(Element root) throws Exception
 	{
 		ArrayList<Element> EAlifeLineList=new ArrayList();
 		ArrayList<Element> EAconnectorList=new ArrayList();
 		ArrayList<Element> EAfragmentList=new ArrayList();
 		ArrayList<Element> EAmessagesList = new ArrayList();
 		
+		//新建一个hashMap用来存储遍历组合片段时得到的lastMessage（对应于diagram）
+		HashMap<String, String> lastMessageIDByKeyWithDiagramID = new HashMap<String, String>();
+		//新建一个hashMap来存储sourceID&targetID -》messageID （优化查找时间）
+		HashMap<String, String> MessageIDByKeyWithSourceIDAndTargetID = new HashMap<String, String>();
 		
 		EAlifeLineList.addAll(root.element("Model").element("packagedElement").element("packagedElement").element("ownedBehavior").elements("lifeline"));
 		EAconnectorList.addAll(root.element("Extension").element("connectors").elements("connector"));
 		EAfragmentList.addAll(root.element("Model").element("packagedElement").element("packagedElement").element("ownedBehavior").elements("fragment"));
 		EAmessagesList.addAll(root.element("Model").element("packagedElement").element("packagedElement").element("ownedBehavior").elements("message"));
+		//成员变量 umlAllDiagramData 包含所有图的list
+			//获得所有图的包含id情况
+			ArrayList<Element> EADiagramsList = new ArrayList();//存放读取得到的element
+					
+			//1.取得所有的diagram 
+			EADiagramsList.addAll(root.element("Extension").element("diagrams").elements("diagram"));
+			
+			//2.遍历EADiagramIDsList
+			for(Iterator<Element>  EADiagramsListIterator=EADiagramsList.iterator();EADiagramsListIterator.hasNext();)
+			{
+				//取得第i张图
+				Element diagramI=EADiagramsListIterator.next();
+				
+				//获得这张图所有elements 
+				ArrayList <Element> elements = new ArrayList <Element>();
+				elements.addAll(diagramI.element("elements").elements("element"));
+				
+				//遍历elements 设置ids
+				ArrayList <String> ids = new ArrayList<String>();	
+				for(Iterator<Element>  elementsIterator=elements.iterator();elementsIterator.hasNext();)
+				{
+					Element elementI = elementsIterator.next();
+					ids.add(elementI.attributeValue("subject").substring(13));//取得13位之后的id属性 因为actor的id只有后面13位是相符的
+				}
+				
+				//获得这张图的name
+				String name = diagramI.element("properties").attributeValue("name");
+				
+				//创建DiagramsData对象
+				WJDiagramsData diagramData = new WJDiagramsData();
+				diagramData.ids = ids;
+				diagramData.name = name;
+				diagramData.diagramID = diagramI.attributeValue("id");
+				lastMessageIDByKeyWithDiagramID.put(diagramData.diagramID, "init");
+				//将DiagramsData对象 添加到成员变量umlAllDiagramData中
+				umlAllDiagramData.add(diagramData);
+			}
+		
 		//读取lifeline信息
 		for(Iterator<Element> lifeLineIterator=EAlifeLineList.iterator();lifeLineIterator.hasNext();)
 		{
@@ -98,10 +141,67 @@ public class Read
 			}
 			umlMessageComplete.add(messageComplete);
 		}
+		//设置messageList
+				ArrayList <MessageComplete> messageList = new ArrayList <MessageComplete>();
+				Iterator <MessageComplete> msgComplete = umlMessageComplete.iterator();
+				Iterator <Element> messageIterator = EAmessagesList.iterator();
+				while(messageIterator.hasNext()&&msgComplete.hasNext())
+				{
+					Element messageI = messageIterator.next();
+					MessageComplete MC = msgComplete.next();
+					
+					ArrayList<Element> allargument = new ArrayList<Element>();
+					allargument.addAll(messageI.elements("argument"));
+					Iterator <Element> allargIterator = allargument.iterator();
+					String T1 = null,T2 = null,Energe = null,R1 = null,R2 = null;
+					while(allargIterator.hasNext())
+					{
+						Element allargI = allargIterator.next();
+						if(allargI.attributeValue("name").equals("T1"))
+							T1=allargI.element("defaultValue").attributeValue("value");
+						if(allargI.attributeValue("name").equals("T2"))
+							T2=allargI.element("defaultValue").attributeValue("value");
+						if(allargI.attributeValue("name").equals("Energe"))
+							Energe=allargI.element("defaultValue").attributeValue("value");
+						if(allargI.attributeValue("name").equals("R1"))
+							R1=allargI.element("defaultValue").attributeValue("value");
+						if(allargI.attributeValue("name").equals("R2"))
+							R2=allargI.element("defaultValue").attributeValue("value");
+					}
+					
+					MessageComplete messageX = new MessageComplete();
+					messageX.setName(messageI.attributeValue("name"));
+					messageX.setConnectorId(messageI.attributeValue("id"));
+					messageX.setSourceId(messageI.attributeValue("sendEvent"));
+					messageX.setTragetId(messageI.attributeValue("receiveEvent"));
+					messageX.setFromId(MC.getSourceId());
+					messageX.setToId(MC.getTragetId());
+					messageX.setStyleValue(MC.styleValue);
+					messageX.setT1(T1);
+					messageX.setT2(T2);
+					messageX.setEnerge(Energe);
+					messageX.setR1(R1);
+					messageX.setR2(R2);
+					MessageIDByKeyWithSourceIDAndTargetID.put(messageX.getSourceId()+messageX.getTragetId(), messageX.getConnectorId());
+					messageList.add(messageX);
+				}
 //***************************************	 组合片段的嵌套读取			
 		for(Iterator<Element> fragListIterator=EAfragmentList.iterator();fragListIterator.hasNext();)//遍历所有fragment
 		{
 			Element fragment=fragListIterator.next();
+			
+			if (fragment.attribute("type").getValue().equals("uml:InteractionUse")) {//最外层如果是一个ref
+				REF ref = new REF();
+				ref.setRefID(fragment.attributeValue("id"));
+				ref.setDiagramName(fragment.attributeValue("name"));
+				String diagramID = findDiagramIDByChildID(ref.getRefID());//找到这个ref所属的diagram
+				ref.setLastMessageID(lastMessageIDByKeyWithDiagramID.get(diagramID));//设置ref的lastmessageID为这个图的lastmessageID
+				
+				ref.setInFragID("null");
+				ref.setInFragName("SD");
+				lastMessageIDByKeyWithDiagramID.put(diagramID, "REF:"+ref.getInFragID());//做一个REF标记
+				umlREF.add(ref);
+			}
 			if(fragment.attribute("type").getValue().equals("uml:CombinedFragment"))
 			{//是组合片段
 				Queue<Element> q = new LinkedList<Element>();
@@ -118,7 +218,7 @@ public class Read
 						System.out.println("pop:"+q_AorP.peek()+parent.attribute("id").getValue());*/
 					
 					ArrayList<Element> alfrags=new ArrayList<Element>();
-					
+
 					if(parent.attribute("type").getValue().equals("uml:CombinedFragment"))//是整个组合片段
 					{
 						
@@ -135,17 +235,39 @@ public class Read
 								//很多fragment 代表迁移(uml:OccurrenceSpecification）和内嵌的组合片段(uml:CombinedFragment)																														
 							Iterator<Element> alfragsIterator = alfrags.iterator();
 							
-							ArrayList<String> sID= new ArrayList<String>();
+							ArrayList<String> sID= new ArrayList<String>();//存放所有的开始id
 							ArrayList<String> tID= new ArrayList<String>();
 							while(alfragsIterator.hasNext())//遍历这一个operand的所有fragment
-							{
+							{ 
 								Element child_fragsI = alfragsIterator.next();
 								
-								if(child_fragsI.attribute("type").getValue().equals("uml:OccurrenceSpecification"))
+								if (child_fragsI.attribute("type").getValue().equals("uml:InteractionUse")) {//opt loop break里面如果是一个ref
+									REF ref = new REF();
+									ref.setRefID(child_fragsI.attributeValue("id"));
+									ref.setDiagramName(child_fragsI.attributeValue("name"));
+									String diagramID = findDiagramIDByChildID(ref.getRefID());//找到这个ref所属的diagram
+									ref.setLastMessageID(lastMessageIDByKeyWithDiagramID.get(diagramID));//设置ref的lastmessageID为这个图的lastmessageID
+									
+									ref.setInFragID(fragInfo.getFragId());
+									ref.setInFragName(fragInfo.getFragType());
+									lastMessageIDByKeyWithDiagramID.put(diagramID, "REF:"+ref.getInFragID());//做一个REF标记
+									umlREF.add(ref);
+								}
+								if(child_fragsI.attribute("type").getValue().equals("uml:OccurrenceSpecification"))//2个fragment对应一个message
 								{	
-									sID.add(child_fragsI.attribute("id").getValue());
+									String sourceID = child_fragsI.attribute("id").getValue();
+									sID.add(sourceID);
+									
 									child_fragsI = alfragsIterator.next();
-									tID.add(child_fragsI.attribute("id").getValue());
+									
+									String targetID = child_fragsI.attribute("id").getValue();
+									tID.add(targetID);
+									
+									//通过sourceID和targetID找到对应的messageID
+									String lastMessageID = MessageIDByKeyWithSourceIDAndTargetID.get(sourceID+targetID);
+									//设置lastMessageID对应于DiagramID
+									lastMessageIDByKeyWithDiagramID.put(findDiagramIDByChildID(lastMessageID), lastMessageID);
+										
 									
 								}
 								else if(child_fragsI.attribute("type").getValue().equals("uml:CombinedFragment"))
@@ -206,7 +328,18 @@ public class Read
 						while(alfragsIterator.hasNext())//遍历这一个操作域的所有fragment
 						{
 							Element child_fragsI = alfragsIterator.next();
-							
+							if (child_fragsI.attribute("type").getValue().equals("uml:InteractionUse")) {//这个操作域里面如果是一个ref
+								REF ref = new REF();
+								ref.setRefID(child_fragsI.attributeValue("id"));
+								ref.setDiagramName(child_fragsI.attributeValue("name"));
+								String diagramID = findDiagramIDByChildID(ref.getRefID());//找到这个ref所属的diagram
+								ref.setLastMessageID(lastMessageIDByKeyWithDiagramID.get(diagramID));//设置ref的lastmessageID为这个图的lastmessageID
+								
+								ref.setInFragID(fragInfo.getFragId());
+								ref.setInFragName(fragInfo.getFragType());
+								lastMessageIDByKeyWithDiagramID.put(diagramID, "REF:"+ref.getInFragID());//做一个REF标记
+								umlREF.add(ref);
+							}
 							if(child_fragsI.attribute("type").getValue().equals("uml:OccurrenceSpecification"))
 							{	
 								sID.add(child_fragsI.attribute("id").getValue());
@@ -257,51 +390,8 @@ public class Read
     			I.setComId(temp);	    			
     		}
 		}
-//***************************************	 组合片段的嵌套读取		
-		//设置messageList
-		ArrayList <MessageComplete> messageList = new ArrayList <MessageComplete>();
-		Iterator <MessageComplete> msgComplete = umlMessageComplete.iterator();
-		Iterator <Element> messageIterator = EAmessagesList.iterator();
-		while(messageIterator.hasNext()&&msgComplete.hasNext())
-		{
-			Element messageI = messageIterator.next();
-			MessageComplete MC = msgComplete.next();
-			
-			ArrayList<Element> allargument = new ArrayList<Element>();
-			allargument.addAll(messageI.elements("argument"));
-			Iterator <Element> allargIterator = allargument.iterator();
-			String T1 = null,T2 = null,Energe = null,R1 = null,R2 = null;
-			while(allargIterator.hasNext())
-			{
-				Element allargI = allargIterator.next();
-				if(allargI.attributeValue("name").equals("T1"))
-					T1=allargI.element("defaultValue").attributeValue("value");
-				if(allargI.attributeValue("name").equals("T2"))
-					T2=allargI.element("defaultValue").attributeValue("value");
-				if(allargI.attributeValue("name").equals("Energe"))
-					Energe=allargI.element("defaultValue").attributeValue("value");
-				if(allargI.attributeValue("name").equals("R1"))
-					R1=allargI.element("defaultValue").attributeValue("value");
-				if(allargI.attributeValue("name").equals("R2"))
-					R2=allargI.element("defaultValue").attributeValue("value");
-			}
-			
-			MessageComplete messageX = new MessageComplete();
-			messageX.setName(messageI.attributeValue("name"));
-			messageX.setConnectorId(messageI.attributeValue("id"));
-			messageX.setSourceId(messageI.attributeValue("sendEvent"));
-			messageX.setTragetId(messageI.attributeValue("receiveEvent"));
-			messageX.setFromId(MC.getSourceId());
-			messageX.setToId(MC.getTragetId());
-			messageX.setStyleValue(MC.styleValue);
-			messageX.setT1(T1);
-			messageX.setT2(T2);
-			messageX.setEnerge(Energe);
-			messageX.setR1(R1);
-			messageX.setR2(R2);
-			
-			messageList.add(messageX);
-		}
+//***************************************	 组合片段的嵌套读取	end	
+		
 		//设定message最后的值 0.设定各种值 1.设置5种时间约束 2.在哪个fragment中
 		for(Iterator<MessageComplete> messageListIterator=messageList.iterator();messageListIterator.hasNext();)
 		{
@@ -341,50 +431,137 @@ public class Read
 				if(finish)
 					break;
 			}
-			umlMsgFragment.add(message);//最终得到的message
+			umlMessageFinal.add(message);//最终得到的message
 			
 		}
-		
-		//成员变量 umlAllDiagramData 包含所有图的list
-		//获得所有图的包含id情况
-		ArrayList<Element> EADiagramsList = new ArrayList();//存放读取得到的element
-				
-		//1.取得所有的diagram 
-		EADiagramsList.addAll(root.element("Extension").element("diagrams").elements("diagram"));
-		
-		//2.遍历EADiagramIDsList
-		for(Iterator<Element>  EADiagramsListIterator=EADiagramsList.iterator();EADiagramsListIterator.hasNext();)
-		{
-			//取得第i张图
-			Element diagramI=EADiagramsListIterator.next();
-			
-			//获得这张图所有elements 
-			ArrayList <Element> elements = new ArrayList <Element>();
-			elements.addAll(diagramI.element("elements").elements("element"));
-			
-			//遍历elements 设置ids
-			ArrayList <String> ids = new ArrayList<String>();	
-			for(Iterator<Element>  elementsIterator=elements.iterator();elementsIterator.hasNext();)
-			{
-				Element elementI = elementsIterator.next();
-				ids.add(elementI.attributeValue("subject").substring(13));//取得13位之后的id属性
+		///找出lifeline fragment message ref 的归属
+		for(WJDiagramsData diagramData : umlAllDiagramData) {
+			for(WJLifeline lifeline : umlLifeLines) {
+				if (diagramData.getIds().contains(lifeline.getlifeLineId().substring(13))) {
+					diagramData.getLifelineArray().add(lifeline);
+				}
 			}
-			
-			//获得这张图的name
-			String name = diagramI.element("properties").attributeValue("name");
-			
-			//创建DiagramsData对象
-			WJDiagramsData diagramData = new WJDiagramsData();
-			diagramData.ids = ids;
-			diagramData.name = name;
-			
-			//将DiagramsData对象 添加到成员变量umlAllDiagramData中
-			umlAllDiagramData.add(diagramData);
+			for(WJFragment fragment : umlFragment) {
+				if (diagramData.getIds().contains(fragment.getFragId().substring(13))) {
+					diagramData.getFragmentArray().add(fragment);
+				}
+			}
+			for(WJMessage message : umlMessageFinal) {
+				if (diagramData.getIds().contains(message.getConnectorId().substring(13))) {
+					diagramData.getMessageArray().add(message);
+				}
+			}
+			for(REF ref : umlREF) {
+				if (diagramData.getIds().contains(ref.getRefID().substring(13))) {
+					diagramData.getRefArray().add(ref);
+				}
+			}
 		}
+		
+		
+		//对ref进行处理 合并子图到父图
+		for(WJDiagramsData diagramData : umlAllDiagramData) {
+			DFSDiagramByREF(diagramData);
+		}
+		
 		
 		
 	}
-	
+/*method-----------------------------------------------------------*/	
+	private void DFSDiagramByREF(WJDiagramsData diagramData) {
+		if (diagramData.refArray.size() == 0) {//本身没有引用 或者引用已经被删光了 已经是完全图 
+			return ;
+		}
+		
+		for(REF ref : diagramData.refArray) {
+			WJDiagramsData childDiagram = findDiagramByName(ref.getDiagramName());
+			DFSDiagramByREF(childDiagram);//处理子图 使其变成无引用的完全图
+			fixDiagramData(diagramData,childDiagram,ref);
+			//diagramData.refArray.remove(ref);
+		}
+		diagramData.refArray.clear();
+	}
+	//将合并完成的没有引用的完全子图 合并到 父图
+	private void fixDiagramData(WJDiagramsData diagramData, WJDiagramsData childDiagram, REF ref) {
+		//添加lifeline
+		for(WJLifeline lifeline : childDiagram.getLifelineArray()) {
+			if (!diagramData.getLifelineArray().contains(lifeline)) {//添加父图没有的lifeline
+				diagramData.getLifelineArray().add(lifeline);
+			}
+		}
+		
+		//修改最外层的fragment 复制一份到父图中
+		ArrayList<WJFragment> copyFragmentArray = new ArrayList<>();
+		for(WJFragment fragment : childDiagram.getFragmentArray()) {//添加所有的组合片段
+			if (fragment.BigId.equals("null")) {//最外面层的sd
+				WJFragment copyFragment = (WJFragment) fragment.clone();
+				copyFragment.setBigId(ref.getInFragID());
+				copyFragmentArray.add(copyFragment);
+			}		
+		}
+		diagramData.getFragmentArray().addAll(copyFragmentArray);
+		
+		//先复制一份子图的messageArray
+		ArrayList<WJMessage> copyMessageArray = new ArrayList<>(); 
+		for(WJMessage message : childDiagram.getMessageArray()) {
+			WJMessage copyMessage = (WJMessage) message.clone();
+			copyMessageArray.add(copyMessage);
+		}
+		//然后将infragID为"null"(说明在SD中) 改为ref片段所在的组合片段id
+		for(WJMessage message : copyMessageArray) {
+			if (message.getInFragId().equals("null")) {
+				message.setInFragId(ref.getInFragID());
+				message.setInFragName(ref.getInFragName());
+			}
+		}
+		//将copyMessage加到特定位置 : init REF EA
+		//1. init 表示子图的引用在初始 
+		if (ref.getLastMessageID().equals("init")) {
+			diagramData.getMessageArray().addAll(0, copyMessageArray);
+			diagramData.setRefEndTo(copyMessageArray.size());
+		} else if (ref.getLastMessageID().substring(0, 3).equals("REF")) {
+		//2. REF 说明上一个是ref 插入到上一个ref结束之后
+			diagramData.getMessageArray().addAll(diagramData.getRefEndTo(), copyMessageArray);
+			diagramData.setRefEndTo(diagramData.getRefEndTo() + copyMessageArray.size());//设置新的endTo
+		} else {//最后一种最普通的情况 就是直接插入到某个message之后
+			for(int i = 0; i < diagramData.getMessageArray().size(); i++) {
+				if (diagramData.getMessageArray().get(i).getConnectorId().equals(ref.getLastMessageID())) {
+					//找到第n个 插入到n+1位置之前
+					diagramData.getMessageArray().addAll(i + 1, copyMessageArray);
+					diagramData.setRefEndTo(i + copyMessageArray.size() + 1);
+					break;
+				}
+			}
+		}
+		
+		
+
+	}
+
+	private WJDiagramsData findDiagramByName(String diagramName) {
+		
+		for(WJDiagramsData diagramsData :umlAllDiagramData) 
+		{
+			//由于diagram存储的是13位后的id 所以用后13位进行判断
+			if (diagramsData.getName().equals(diagramName))//包含这个子id
+				return diagramsData;
+			
+		}
+		return null;
+	}
+
+	private String findDiagramIDByChildID(String childID) {
+
+		for(WJDiagramsData diagramsData :umlAllDiagramData) 
+		{
+			//由于diagram存储的是13位后的id 所以用后13位进行判断
+			if (diagramsData.ids.contains(childID.substring(13)))//包含这个子id
+				return diagramsData.diagramID;
+			
+		}
+		return null;
+	}
+
 //DCBMX=0;DCBMGUID={65DF8856-63B5-423a-9BD1-952DEA23D616};SEQDC=10000;SEQDO=10002;SEQTC=10003;SEQTO=10004;DCBM=10001;
 	//message设定5种时间约束
 	private void setMessageTimeDurations(WJMessage message, String styleValue) {
@@ -407,6 +584,11 @@ public class Read
 		
 	}
 
+	public ArrayList<REF> getUmlREF() {
+		return umlREF;
+	}
+
+
 	public ArrayList<WJDiagramsData> getUmlAllDiagramData() {
 		return umlAllDiagramData;
 	}
@@ -415,19 +597,47 @@ public class Read
 	{
 		return findAltsFather;
 	}
-	public ArrayList<WJLifeline> getLifeLines()
-	{
+
+	public void setUmlAllDiagramData(ArrayList<WJDiagramsData> umlAllDiagramData) {
+		this.umlAllDiagramData = umlAllDiagramData;
+	}
+
+	public ArrayList<WJLifeline> getUmlLifeLines() {
 		return umlLifeLines;
 	}
-	
-	public ArrayList<WJFragment> getUmlFragmentMsg()
-	{
+
+	public void setUmlLifeLines(ArrayList<WJLifeline> umlLifeLines) {
+		this.umlLifeLines = umlLifeLines;
+	}
+
+	public ArrayList<MessageClass> getUmlMessages() {
+		return umlMessages;
+	}
+
+	public void setUmlMessages(ArrayList<MessageClass> umlMessages) {
+		this.umlMessages = umlMessages;
+	}
+
+	public ArrayList<WJFragment> getUmlFragment() {
 		return umlFragment;
 	}
-	public ArrayList<WJMessage> getUmlMsgFragment()
-	{
-		return umlMsgFragment;
+
+	public void setUmlFragment(ArrayList<WJFragment> umlFragment) {
+		this.umlFragment = umlFragment;
 	}
+
+	public void setUmlREF(ArrayList<REF> umlREF) {
+		this.umlREF = umlREF;
+	}
+
+	public ArrayList<WJMessage> getUmlMessageFinal() {
+		return umlMessageFinal;
+	}
+
+	public void setUmlMessageFinal(ArrayList<WJMessage> umlMessageFinal) {
+		this.umlMessageFinal = umlMessageFinal;
+	}
+	
 }
 	
 

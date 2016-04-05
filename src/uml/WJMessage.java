@@ -4,7 +4,18 @@ import java.util.ArrayList;
 
 import org.dom4j.Element;
 
-public class WJMessage {//消息
+public class WJMessage implements Cloneable{//消息
+	public Object clone() {   
+		WJMessage o = null;   
+        try {   
+            o = (WJMessage) super.clone();   
+        } catch (CloneNotSupportedException e) {   
+            e.printStackTrace();   
+        }   
+        return o;   
+    }   
+	String inFragId="null";//在哪个片段中
+	String inFragName="null";
 	String connectorId="null";
 	String sourceId="null";
 	String tragetId="null";
@@ -101,8 +112,7 @@ public class WJMessage {//消息
 	public void setToId(String toId) {
 		this.toId = toId;
 	}
-	String inFragId="null";//在哪个片段中
-	String inFragName="null";
+	
 	public String getInFragName() {
 		return inFragName;
 	}

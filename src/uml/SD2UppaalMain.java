@@ -25,8 +25,6 @@ public class SD2UppaalMain {
 	
 	private static ArrayList<UppaalTransition> transitionList = new ArrayList<UppaalTransition>();//这个生命线所有transition
 	private static ArrayList<UppaalLocation> locationList = new ArrayList<UppaalLocation>();	//这个生命线所有location
-	//private static HashSet <Integer> startIds = new HashSet <Integer>();
-	//private static HashSet <Integer> endIds = new HashSet <Integer>();
 	private static int [][] map ;
 	private static int m_id;
 	private static int [] altEndTo;
@@ -57,42 +55,25 @@ public class SD2UppaalMain {
 		
 		
 		SAXReader reader=new SAXReader();//获取解析器
-	    Document dom= reader.read("1toN.xml");//解析XML获取代表整个文档的dom对象
+	    Document dom= reader.read("EAtest.xml");//解析XML获取代表整个文档的dom对象
 	    Element root=dom.getRootElement();//获取根节点
 	    
 	    Read uml=new Read();
 	    uml.load(root);
 	    
-	    AllLifeLines=uml.getLifeLines();
-	    AllMessages=uml.getUmlMsgFragment();
-	    AllFragments=uml.getUmlFragmentMsg();
+	    AllLifeLines=uml.getUmlLifeLines();
+	    AllMessages=uml.getUmlMessageFinal();
+	    AllFragments=uml.getUmlFragment();
 	    //得到所有图对应的id
 	    DiagramsDataList = uml.getUmlAllDiagramData();
 	    
-	  //将fragment放入hashmap  ：：所有图
-   	    Iterator<WJFragment> fragmentsIterator = AllFragments.iterator();
-	    while(fragmentsIterator.hasNext())
-	    {
-	    	WJFragment I = (WJFragment) fragmentsIterator.next();	    		    	    	
-	    	id_fragment.put(I.getFragId(),I);
-	    }
-	  
-	    WJFragment x = new WJFragment();
-	    x.setFragType("SD");
-	    x.setBigId("nothing");
-	    id_fragment.put("null", x);
-	    WJFragment y = new WJFragment();
-	    id_fragment.put("nothing", y);
-	    if(uml.hasNoLifeline() )
-	    {
-	    	System.out.println("没有找到生命线，退出");
-	    	System.exit(0);	    	
-	    }
+	
 	    
 	    //V1.4 增加新遍历图DiagramsDataList
 	    Iterator<WJDiagramsData> DiagramsDataListIterator = DiagramsDataList.iterator();   
 	    while(DiagramsDataListIterator.hasNext())
-	    {
+	    {  
+	    	
 	    	//获得第i个图
 	    	WJDiagramsData diagramDaraI = DiagramsDataListIterator.next();
 	    	
@@ -104,32 +85,27 @@ public class SD2UppaalMain {
 		    messages.clear();
 		    fragments.clear();
 		    templates.clear();
-		    
-		    //遍历所有lifeline 找出属于这个图的加到lifelines中
-		    Iterator<WJLifeline> lifelineIterator0 = AllLifeLines.iterator();
-		    while(lifelineIterator0.hasNext())
+		    id_fragment.clear();
+		    lifeLines = diagramDaraI.getLifelineArray();
+		    fragments = diagramDaraI.getFragmentArray();
+		    messages = diagramDaraI.getMessageArray();
+		    //将fragment放入hashmap  ：：这个图
+	    	id_fragment.clear();
+	   	    Iterator<WJFragment> fragmentsIterator = fragments.iterator();
+		    while(fragmentsIterator.hasNext())
 		    {
-		    	WJLifeline lifelineI = lifelineIterator0.next();
-		    	if(diagramDaraI.ids.contains(lifelineI.getlifeLineId().substring(13)))
-		    		lifeLines.add(lifelineI);	
+		    	WJFragment I = (WJFragment) fragmentsIterator.next();	    		    	    	
+		    	id_fragment.put(I.getFragId(),I);
 		    }
-		    //fragment
-		    Iterator<WJFragment> fragmentIterator0 = AllFragments.iterator();
-		    while(fragmentIterator0.hasNext())
-		    {
-		    	WJFragment fragmentI = fragmentIterator0.next();
-		    	if(diagramDaraI.ids.contains(fragmentI.getFragId().substring(13)))
-		    		fragments.add(fragmentI);	
-		    }
-		    //消息
-		    Iterator<WJMessage> messageIterator0 = AllMessages.iterator();
-		    while(messageIterator0.hasNext())
-		    { 
-		    	WJMessage messageI = messageIterator0.next();
-		    	if(diagramDaraI.ids.contains(messageI.connectorId.substring(13)))
-		    		messages.add(messageI);	
-		    }
+		  
+		    WJFragment sd = new WJFragment();//设置SD的id为null
+		    sd.setFragType("SD");
+		    sd.setBigId("nothing");
+		    id_fragment.put("null", sd);
+		    WJFragment y = new WJFragment();
+		    id_fragment.put("nothing", y);
 
+		    
 		    	UppaalTemPlate template=new UppaalTemPlate();
 		    	messageList.clear();//清空数据
 		    	fragmentList.clear();

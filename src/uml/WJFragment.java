@@ -4,7 +4,16 @@ import java.util.ArrayList;
 
 import org.dom4j.Element;
 
-public class WJFragment {//组合片段
+public class WJFragment implements Cloneable{//组合片段
+	public Object clone() {   
+		WJFragment o = null;   
+        try {   
+            o = (WJFragment) super.clone();   
+        } catch (CloneNotSupportedException e) {   
+            e.printStackTrace();   
+        }   
+        return o;   
+    }   
 	String fragType="null";
 	String fragId="null";
 	
@@ -12,7 +21,7 @@ public class WJFragment {//组合片段
 		
 	String BigId="null";
 	String comId="null";
-	
+	 
 	public String getComId() {
 		return comId;
 	}
