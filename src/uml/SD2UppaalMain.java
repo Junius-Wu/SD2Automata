@@ -39,11 +39,7 @@ public class SD2UppaalMain {
 	{
 		//所有图
 		ArrayList<WJDiagramsData> DiagramsDataList = new ArrayList<WJDiagramsData>();
-		ArrayList<WJLifeline> AllLifeLines=new ArrayList<WJLifeline>();//
-		ArrayList<WJMessage> AllMessages=new ArrayList<WJMessage>();
-		ArrayList<WJFragment> AllFragments=new ArrayList<WJFragment>();
-		
-		
+	
 		//这个图的lifelines 和其他
 		ArrayList<WJLifeline> lifeLines=new ArrayList<WJLifeline>();//
 		ArrayList<WJMessage> messages=new ArrayList<WJMessage>();
@@ -61,15 +57,13 @@ public class SD2UppaalMain {
 	    Read uml=new Read();
 	    uml.load(root);
 	    
-	    AllLifeLines=uml.getUmlLifeLines();
-	    AllMessages=uml.getUmlMessageFinal();
-	    AllFragments=uml.getUmlFragment();
-	    //得到所有图对应的id
+
+	    //得到所有图对应的所有数据
 	    DiagramsDataList = uml.getUmlAllDiagramData();
 	    
 	
 	    
-	    //V1.4 增加新遍历图DiagramsDataList
+	    // 遍历图DiagramsDataList
 	    Iterator<WJDiagramsData> DiagramsDataListIterator = DiagramsDataList.iterator();   
 	    while(DiagramsDataListIterator.hasNext())
 	    {  
@@ -80,7 +74,7 @@ public class SD2UppaalMain {
 	    	System.out.println("***************************************");
 		    System.out.println("正在处理图名为:"+diagramDaraI.name);
 		    
-		    //清除数据
+		    //初始化
 		    lifeLines.clear();
 		    messages.clear();
 		    fragments.clear();
@@ -89,7 +83,8 @@ public class SD2UppaalMain {
 		    lifeLines = diagramDaraI.getLifelineArray();
 		    fragments = diagramDaraI.getFragmentArray();
 		    messages = diagramDaraI.getMessageArray();
-		    //将fragment放入hashmap  ：：这个图
+		    
+		    //id——fragment hashmap
 	    	id_fragment.clear();
 	   	    Iterator<WJFragment> fragmentsIterator = fragments.iterator();
 		    while(fragmentsIterator.hasNext())
@@ -145,7 +140,7 @@ public class SD2UppaalMain {
 				    location0.setInit(true);
 				    location0.setObjId(messages.get(0).getFromId());
 			    
-				    Iterator<WJLifeline> lifelineIteratorForName = AllLifeLines.iterator();
+				    Iterator<WJLifeline> lifelineIteratorForName = lifeLines.iterator();
 				    while(lifelineIteratorForName.hasNext())
 				    {//遍历所有lifeline确定id对应的名称
 				    	WJLifeline lifeline = lifelineIteratorForName.next();
@@ -188,7 +183,7 @@ public class SD2UppaalMain {
 		    				location.setR2(messageI.getR2()); 
 		    				location.setEnerge(messageI.getEnerge());
 		    				location.setObjId(messageI.getToId());
-						    Iterator<WJLifeline> lifelineIteratorForName2 = AllLifeLines.iterator();
+						    Iterator<WJLifeline> lifelineIteratorForName2 = lifeLines.iterator();
 						    while(lifelineIteratorForName2.hasNext())
 						    {//遍历所有lifeline确定id对应的名称
 						    	WJLifeline lifeline = lifelineIteratorForName2.next();
