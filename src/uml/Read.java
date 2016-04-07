@@ -493,11 +493,11 @@ public class Read
 		//修改最外层的fragment 复制一份到父图中
 		ArrayList<WJFragment> copyFragmentArray = new ArrayList<>();
 		for(WJFragment fragment : childDiagram.getFragmentArray()) {//添加所有的组合片段
+			WJFragment copyFragment = (WJFragment) fragment.clone();
 			if (fragment.BigId.equals("null")) {//最外面层的sd
-				WJFragment copyFragment = (WJFragment) fragment.clone();
-				copyFragment.setBigId(ref.getInFragID());
-				copyFragmentArray.add(copyFragment);
-			}		
+				copyFragment.setBigId(ref.getInFragID());	
+			}
+			copyFragmentArray.add(copyFragment);	
 		}
 		diagramData.getFragmentArray().addAll(copyFragmentArray);
 		
