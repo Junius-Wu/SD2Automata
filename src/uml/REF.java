@@ -4,10 +4,10 @@ public class REF {
 
 	String lastMessageID;//3种情况init REF:XXXXX EAXXXX
 
-	String inFragName;
-	String inFragID;
-	String diagramName;
-	String refID;
+	String inFragName;//必须
+	String inFragID;//必须
+	String diagramName;//必须
+	String refID;//暂时没用的属性
 	
 	public String getRefID() {
 		return refID;

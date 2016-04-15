@@ -51,7 +51,7 @@ public class SD2UppaalMain {
 		
 		
 		SAXReader reader=new SAXReader();//获取解析器
-	    Document dom= reader.read("EAtest.xml");//解析XML获取代表整个文档的dom对象
+	    Document dom= reader.read("test.xml");//解析XML获取代表整个文档的dom对象
 	    Element root=dom.getRootElement();//获取根节点
 	    
 	    Read uml=new Read();
@@ -338,17 +338,13 @@ public class SD2UppaalMain {
 			    for(int i=0;i<F.size()-1;i++)
 			    {
 			    	//i可以到哪
-			    	for(Object obj1: G.get(i))
-			    	{
-			    		int Gii = (int) obj1;//i可以到Gii
-			    		
-			    		
-			    		for(Object obj2: F.get(Gii))//能到达Gii的话又可能到达F(Gii)
-				    	{		    			
-			    			int Fii = (int) obj2;
+		    		for(int Gii :G.get(i)) //i可以到Gii
+		    		{
+		    			for(int Fii: F.get(Gii))//能到达Gii的话又可能到达F(Gii)
+				    	{		    	
 			    			map[i][Fii] = Fii;
 				    	}
-			    	}
+		    		}
 			    }
 	//par的情况 	
 			    while(!parFragment.isEmpty())
