@@ -2,15 +2,25 @@ package uml;
 
 import java.util.ArrayList;
 
-public class WJDiagramsData {
-
-	ArrayList <String> ids ;
+public class WJDiagramsData{
+	
+	
+	
+	ArrayList <String> ids = new ArrayList<String>();
 	ArrayList <WJLifeline> lifelineArray = new ArrayList <WJLifeline>();
 	ArrayList <WJFragment> fragmentArray = new ArrayList <WJFragment>();
 	ArrayList <WJMessage> messageArray = new ArrayList <WJMessage>();
 	ArrayList <REF> refArray = new ArrayList <REF>();
 	String diagramID;
 	String name;
+	int displayCount = 0;
+	public int getDisplayCount() {
+		return displayCount;
+	}
+	public void setDisplayCount(int displayCount) {
+		this.displayCount = displayCount;
+	}
+
 	int RefEndTo;
 	
 	public ArrayList<String> getIds() {

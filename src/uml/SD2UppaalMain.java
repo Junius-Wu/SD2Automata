@@ -131,11 +131,11 @@ public class SD2UppaalMain {
 			    {//有消息
 			    	
 			    	//创建Q0
-				    int q_id=0;
+				    String q_id = "_init" ;
 				    m_id=0;
 				   
 				    
-				    UppaalLocation location0 = setLocation(q_id,"q"+q_id++);	 //id,   状态name  
+				    UppaalLocation location0 = setLocation(q_id,q_id);	 //id,   状态name  
 				    
 				    location0.setInit(true);
 				    location0.setObjId(messages.get(0).getFromId());
@@ -178,7 +178,7 @@ public class SD2UppaalMain {
 					    	
 					    	
 		//添加location
-			    			UppaalLocation location = setLocation(q_id,"q"+q_id++);
+			    			UppaalLocation location = setLocation(messageI.getConnectorId().substring(4),messageI.getName());
 			    			location.setR1(messageI.getR1());
 		    				location.setR2(messageI.getR2()); 
 		    				location.setEnerge(messageI.getEnerge());
@@ -753,7 +753,7 @@ public class SD2UppaalMain {
 		}
 		return temp;
 	}
-	public static UppaalLocation setLocation(int id, String name)
+	public static UppaalLocation setLocation(String id, String name)
 	{
 		UppaalLocation location = new UppaalLocation();
 			location.setId(id);
@@ -763,14 +763,14 @@ public class SD2UppaalMain {
 		return location;
 	}
 	
-	public static UppaalTransition setTransition(WJMessage messageI, int message_id, String message_name,int source_id, String source_name,int target_id, String target_name, String T1,String T2)
+	public static UppaalTransition setTransition(WJMessage messageI, int message_id, String message_name,String string, String source_name,String string2, String target_name, String T1,String T2)
 	{
 		UppaalTransition transition = new UppaalTransition();
 		transition.setId(message_id);
 		transition.setNameS(source_name);
 		transition.setNameT(target_name);
-		transition.setSourceId(source_id);
-		transition.setTargetId(target_id);
+		transition.setSourceId(string);
+		transition.setTargetId(string2);
 		transition.setNameText(message_name);
 		transition.setT1(T1);
 		transition.setT2(T2);

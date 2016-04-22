@@ -2,8 +2,10 @@ package uml;
 
 public class UppaalTransition 
 {
-	int sourceId;
-	int targetId;
+	String sourceId;
+	String targetId;
+	int sourceIdForUPPAAL;
+	int tatgetIdForUPPAAL;
 	int id;
 	String Kind = "synchronisation";
 	String nameText;
@@ -66,19 +68,19 @@ public class UppaalTransition
 	{
 		this.id=id;
 	}
-	public int getSourceId() 
+	public String getSourceId() 
 	{
 		return sourceId;
 	}
-	public void setSourceId(int sourceId) 
+	public void setSourceId(String sourceId) 
 	{
 		this.sourceId = sourceId;
 	}
-	public int getTargetId() 
+	public String getTargetId() 
 	{
 		return targetId;
 	}
-	public void setTargetId(int targetId) 
+	public void setTargetId(String targetId) 
 	{
 		this.targetId = targetId;
 	}
