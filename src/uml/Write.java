@@ -90,7 +90,7 @@ public class Write
 		    	tran.addAttribute("id", "tran_id"+transition.getSourceId()+transition.getTargetId());
 		    	tran.addAttribute("T1", transition.getT1());
 		    	tran.addAttribute("T2", transition.getT2());
-				tran.addAttribute("timeDuration", transition.getSEQDC());
+				tran.addAttribute("timeDuration", transition.getSEQDO());
 //				
 //				tran.addElement("label").addAttribute("kind","guard")
 //										.addText("DCBM = " + transition.getDCBM()+","+
@@ -99,7 +99,7 @@ public class Write
 //												"SEQTC = " + transition.getSEQTC()+","+
 //												"SEQTO = " + transition.getSEQTO()
 //												);
-		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(transition.getNameText()+"|"+transition.getSEQDC());
+		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(transition.getNameText()+"|"+transition.getSEQDO());
 		    	//System.out.println(transition.getNameText()+"/["+transition.getT1()+","+transition.getT2()+"]");
 		    } 
 		}

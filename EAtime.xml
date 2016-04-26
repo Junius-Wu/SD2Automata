@@ -9,7 +9,7 @@
 					<ownedRule xmi:type="uml:DurationConstraint" xmi:id="EAID_TC000000_8BAA_4739_8005_C47D270F11B7" visibility="public">
 						<constrainedElement xmi:idref="EAID_C318BEFB_8BAA_4739_8005_C47D270F11B7"/>
 						<specification xmi:type="uml:Duration" xmi:id="EAID_TS000000_8BAA_4739_8005_C47D270F11B7" visibility="public">
-							<expr xmi:type="uml:OpaqueExpression" xmi:id="EAID_TE000000_8BAA_4739_8005_C47D270F11B7" body="t&lt;=130ms"/>
+							<observation xmi:type="uml:DurationObservation" xmi:id="EAID_TO000000_8BAA_4739_8005_C47D270F11B7" name="t&lt;=130ms" event="EAID_C318BEFB_8BAA_4739_8005_C47D270F11B7"/>
 						</specification>
 					</ownedRule>
 					<lifeline xmi:type="uml:Lifeline" xmi:id="EAID_478C1FC1_AC3F_49cc_9E75_E1B00CE68D0C" name="Object2" visibility="public" represents="EAID_AT000000_AC3F_49cc_9E75_E1B00CE68D0C"/>
@@ -131,9 +131,9 @@
 				<properties name="m0" ea_type="Sequence" direction="Source -&gt; Destination"/>
 				<documentation/>
 				<appearance linemode="1" linecolor="-1" linewidth="0" seqno="1" headStyle="0" lineStyle="0"/>
-				<labels mt="m0() {t&lt;=130ms}"/>
-				<extendedProperties stateflags="Activation=0;ExtendActivationUp=0;" virtualInheritance="0" diagram="EAID_C509967C_9FA1_4bd3_A059_DC86CC3C3946" privatedata1="Synchronous" privatedata2="retval=void;" privatedata3="Call" privatedata4="0" privatedata5="SX=0;SY=-62;EX=0;EY=0;$LLB=;LLT=;LMT=CX=76:CY=13:OX=0:OY=0:HDN=0:BLD=0:ITA=0:UND=0:CLR=-1:ALN=1:DIR=0:ROT=0;LMB=;LRT=;LRB=;IRHS=;ILHS=;" sequence_points="PtStartX=190;PtStartY=-197;PtEndX=560;PtEndY=-237;"/>
-				<style value="DCBMX=0;DCBMGUID={976859DC-11E9-496d-9BF1-DEC7A36F077F};SEQDC=t&lt;=130ms;DCBM=t&gt;100ms;"/>
+				<labels lt="t&lt;=130ms" mt="m0() t&lt;=130ms"/>
+				<extendedProperties stateflags="Activation=0;ExtendActivationUp=0;" virtualInheritance="0" diagram="EAID_C509967C_9FA1_4bd3_A059_DC86CC3C3946" privatedata1="Synchronous" privatedata2="retval=void;" privatedata3="Call" privatedata4="0" privatedata5="SX=0;SY=-62;EX=0;EY=0;$LLB=;LLT=CX=100:CY=10:OX=0:OY=0:HDN=0:BLD=0:ITA=0:UND=0:CLR=-1:ALN=0:DIR=0:ROT=0;LMT=CX=70:CY=13:OX=0:OY=0:HDN=0:BLD=0:ITA=0:UND=0:CLR=-1:ALN=1:DIR=0:ROT=0;LMB=;LRT=;LRB=;IRHS=;ILHS=;" sequence_points="PtStartX=190;PtStartY=-197;PtEndX=560;PtEndY=-197;"/>
+				<style value="DCBMX=0;DCBMGUID={976859DC-11E9-496d-9BF1-DEC7A36F077F};DCBM=t&gt;100ms;SEQDO=t&lt;=130ms;"/>
 				<xrefs/>
 				<tags/>
 			</connector>
@@ -146,9 +146,9 @@
 			<diagram xmi:id="EAID_C509967C_9FA1_4bd3_A059_DC86CC3C3946">
 				<model package="EAPK_A8AE59F8_FD01_4948_A8AF_090EDB96F478" localID="12" owner="EAPK_A8AE59F8_FD01_4948_A8AF_090EDB96F478"/>
 				<properties name="time" type="Sequence"/>
-				<project author="Jun" version="1.0" created="2016-04-25 19:53:03" modified="2016-04-25 20:09:41"/>
+				<project author="Jun" version="1.0" created="2016-04-25 19:53:03" modified="2016-04-26 17:58:54"/>
 				<style1 value="ShowPrivate=1;ShowProtected=1;ShowPublic=1;HideRelationships=0;Locked=0;Border=1;HighlightForeign=1;PackageContents=1;SequenceNotes=0;ScalePrintImage=0;PPgs.cx=1;PPgs.cy=1;DocSize.cx=827;DocSize.cy=1169;ShowDetails=0;Orientation=P;Zoom=159;ShowTags=0;OpParams=1;VisibleAttributeDetail=0;ShowOpRetType=1;ShowIcons=1;CollabNums=0;HideProps=0;ShowReqs=0;ShowCons=0;PaperSize=9;HideParents=0;UseAlias=0;HideAtts=0;HideOps=0;HideStereo=0;HideElemStereo=0;ShowTests=0;ShowMaint=0;ConnectorNotation=UML 2.1;ExplicitNavigability=0;AdvancedElementProps=1;AdvancedFeatureProps=1;AdvancedConnectorProps=1;ShowNotes=0;SuppressBrackets=0;SuppConnectorLabels=0;PrintPageHeadFoot=0;ShowAsList=0;"/>
-				<style2 value="ExcludeRTF=0;DocAll=0;HideQuals=0;AttPkg=1;ShowTests=0;ShowMaint=0;SuppressFOC=0;INT_ARGS=;INT_RET=;INT_ATT=;SeqTopMargin=50;MatrixActive=0;SwimlanesActive=1;KanbanActive=0;MatrixLineWidth=1;MatrixLocked=0;TConnectorNotation=UML 2.1;TExplicitNavigability=0;AdvancedElementProps=1;AdvancedFeatureProps=1;AdvancedConnectorProps=1;ProfileData=;MDGDgm=;STBLDgm=;ShowNotes=0;VisibleAttributeDetail=0;ShowOpRetType=1;SuppressBrackets=0;SuppConnectorLabels=0;PrintPageHeadFoot=0;ShowAsList=0;SuppressedCompartments=;SaveTag=0CC09649;"/>
+				<style2 value="ExcludeRTF=0;DocAll=0;HideQuals=0;AttPkg=1;ShowTests=0;ShowMaint=0;SuppressFOC=0;INT_ARGS=;INT_RET=;INT_ATT=;SeqTopMargin=50;MatrixActive=0;SwimlanesActive=1;KanbanActive=0;MatrixLineWidth=1;MatrixLocked=0;TConnectorNotation=UML 2.1;TExplicitNavigability=0;AdvancedElementProps=1;AdvancedFeatureProps=1;AdvancedConnectorProps=1;ProfileData=;MDGDgm=;STBLDgm=;ShowNotes=0;VisibleAttributeDetail=0;ShowOpRetType=1;SuppressBrackets=0;SuppConnectorLabels=0;PrintPageHeadFoot=0;ShowAsList=0;SuppressedCompartments=;SaveTag=946C70E2;"/>
 				<swimlanes value="locked=false;orientation=0;width=0;inbar=false;names=false;color=-1;bold=false;fcol=0;tcol=-1;ofCol=-1;hl=1;cls=0;"/>
 				<matrixitems value="locked=false;matrixactive=false;swimlanesactive=true;kanbanactive=false;width=1;"/>
 				<extendedProperties/>

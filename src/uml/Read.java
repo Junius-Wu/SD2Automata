@@ -616,10 +616,10 @@ public class Read
 //				message.setDCBM(nameAndValue[1]);
 //			}
 //		}
-		String[] str1 = styleValue.split("SEQDC=");
-		String[] str2 = str1[1].split("DCBM=");
-		message.setSEQDC(str2[0]);
-		message.setDCBM(str2[1]);
+		String[] str1 = styleValue.split("DCBM=");
+		String[] str2 = str1[1].split("SEQDO=");
+		message.setSEQDO(str2[1]);
+		message.setDCBM(str2[0]);
 		
 	}
 
