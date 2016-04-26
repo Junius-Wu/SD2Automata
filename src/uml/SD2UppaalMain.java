@@ -13,6 +13,7 @@ import javax.xml.transform.Templates;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.xml.sax.Locator;
 
 import uml.Write;
 
@@ -179,6 +180,7 @@ public class SD2UppaalMain {
 					    	
 		//Ìí¼Ólocation
 			    			UppaalLocation location = setLocation(messageI.getConnectorId().substring(4),messageI.getName());
+			    			location.setTimeDuration(messageI.getDCBM());
 			    			location.setR1(messageI.getR1());
 		    				location.setR2(messageI.getR2()); 
 		    				location.setEnerge(messageI.getEnerge());

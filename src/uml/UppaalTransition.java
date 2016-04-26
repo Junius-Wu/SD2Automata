@@ -13,11 +13,12 @@ public class UppaalTransition
 	String nameS="null";
 	String T1 = "0";
 	String T2 = "0";
-	String SEQDC;
-	String SEQDO;
-	String SEQTC;
-	String SEQTO;
-	String DCBM;
+	String SEQDC="null";//1 消息上的时间约束
+	String DCBM="null";//2 状态上的时间约束
+	String SEQDO="null";//3
+	String SEQTC="null";//4
+	String SEQTO="null";//5
+	
 	public String getSEQDC() {
 		return SEQDC;
 	}

@@ -553,7 +553,7 @@ public class Read
 				}
 			}
 		}
-		//添加要展示的图复制diagramData
+		//添加要展示的图  复制diagramData
 		WJDiagramsData displaySD = new WJDiagramsData();
 		displaySD.diagramID = diagramData.diagramID + "-----display" + diagramData.displayCount;
 		displaySD.name = diagramData.name + "-----display" + diagramData.displayCount;
@@ -601,21 +601,25 @@ public class Read
 	//message设定5种时间约束
 	private void setMessageTimeDurations(WJMessage message, String styleValue) {
 		if (styleValue == null) return;
-		String[] strArray = styleValue.split(";");
-		for (int i = 0; i < strArray.length; i++) {
-			String[] nameAndValue = strArray[i].split("=");
-			if (nameAndValue[0].equals("SEQDC")) {
-				message.setSEQDC(nameAndValue[1]);
-			} else if (nameAndValue[0].equals("SEQDO")){
-				message.setSEQDO(nameAndValue[1]);
-			} else if (nameAndValue[0].equals("SEQTC")){
-				message.setSEQTC(nameAndValue[1]);
-			} else if (nameAndValue[0].equals("SEQTO")){
-				message.setSEQTO(nameAndValue[1]);
-			} else if (nameAndValue[0].equals("DCBM")){
-				message.setDCBM(nameAndValue[1]);
-			}
-		}
+//		String[] strArray = styleValue.split(";");
+//		for (int i = 0; i < strArray.length; i++) {
+//			String[] nameAndValue = strArray[i].split("=");
+//			if (nameAndValue[0].equals("SEQDC")) {
+//				message.setSEQDC(nameAndValue[1]);
+//			} else if (nameAndValue[0].equals("SEQDO")){
+//				message.setSEQDO(nameAndValue[1]);
+//			} else if (nameAndValue[0].equals("SEQTC")){
+//				message.setSEQTC(nameAndValue[1]);
+//			} else if (nameAndValue[0].equals("SEQTO")){
+//				message.setSEQTO(nameAndValue[1]);
+//			} else if (nameAndValue[0].equals("DCBM")){
+//				message.setDCBM(nameAndValue[1]);
+//			}
+//		}
+		String[] str1 = styleValue.split("SEQDC=");
+		String[] str2 = str1[1].split("DCBM=");
+		message.setSEQDC(str2[0]);
+		message.setDCBM(str2[1]);
 		
 	}
 

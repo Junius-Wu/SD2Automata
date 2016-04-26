@@ -13,6 +13,14 @@ public class UppaalLocation {
 	String Energe = "0";
 	String ObjId = "NULL";
 	String ObjName = "";
+	String timeDuration;
+	
+	public String getTimeDuration() {
+		return timeDuration;
+	}
+	public void setTimeDuration(String timeDuration) {
+		this.timeDuration = timeDuration;
+	}
 	public Boolean getInit() {
 		return init;
 	}

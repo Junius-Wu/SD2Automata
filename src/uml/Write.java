@@ -53,7 +53,7 @@ public class Write
 		    	loc.addAttribute("y",yy);
 		    	loc.addAttribute("R1", location.getR1());
 		    	loc.addAttribute("R2", location.getR2());
-		    	
+		    	loc.addAttribute("timeDuration", location.getTimeDuration());
 		    	loc.addAttribute("Energe",location.getEnerge());
 		    	//当使用顺序图转换到自动机， 此属性表示这个状态属于哪个对象的id，若是对象图到自动机 ，则可以无视这个属性
 		    	
@@ -64,7 +64,7 @@ public class Write
 		    	Element name2=loc.addElement("name");
 		    	name2.addAttribute("x", xx);
 		    	name2.addAttribute("y", yy);
-		    	name2.setText(location.getObjName()+":"+location.getName());
+		    	name2.setText(location.getObjName()+":"+location.getName()+"|"+location.getTimeDuration());
 		    	
 		    	/*Element name3=loc.addElement("R1R2");
 		    	name3.addAttribute("x", xx);
@@ -90,19 +90,16 @@ public class Write
 		    	tran.addAttribute("id", "tran_id"+transition.getSourceId()+transition.getTargetId());
 		    	tran.addAttribute("T1", transition.getT1());
 		    	tran.addAttribute("T2", transition.getT2());
-				tran.addAttribute("DCBM", transition.getDCBM());
-				tran.addAttribute("SEQDC", transition.getSEQDC());
-				tran.addAttribute("SEQDO", transition.getSEQDO());
-				tran.addAttribute("SEQTC", transition.getSEQTC());
-				tran.addAttribute("SEQTO", transition.getSEQTO());
-				tran.addElement("label").addAttribute("kind","guard")
-										.addText("DCBM = " + transition.getDCBM()+","+
-												"SEQDC = " + transition.getSEQDC()+","+
-												"SEQDO = " + transition.getSEQDO()+","+
-												"SEQTC = " + transition.getSEQTC()+","+
-												"SEQTO = " + transition.getSEQTO()
-												);
-		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(transition.getNameText());
+				tran.addAttribute("timeDuration", transition.getSEQDC());
+//				
+//				tran.addElement("label").addAttribute("kind","guard")
+//										.addText("DCBM = " + transition.getDCBM()+","+
+//												"SEQDC = " + transition.getSEQDC()+","+
+//												"SEQDO = " + transition.getSEQDO()+","+
+//												"SEQTC = " + transition.getSEQTC()+","+
+//												"SEQTO = " + transition.getSEQTO()
+//												);
+		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(transition.getNameText()+"|"+transition.getSEQDC());
 		    	//System.out.println(transition.getNameText()+"/["+transition.getT1()+","+transition.getT2()+"]");
 		    } 
 		}
