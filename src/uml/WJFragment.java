@@ -14,10 +14,10 @@ public class WJFragment implements Cloneable{//组合片段
         }   
         return o;   
     }   
-	String fragType="null";
-	String fragId="null";
+	String fragType="null";//opt
+	String fragId="null";//自己的id
 	
-	String fragCondition="null";
+	String fragCondition="null";//条件
 		
 	String BigId="null";
 	String comId="null";

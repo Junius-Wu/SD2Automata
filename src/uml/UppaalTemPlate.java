@@ -4,10 +4,11 @@ import java.util.ArrayList;
 
 public class UppaalTemPlate 
 {
-	String Name;
+	
 	String declaration;
-	ArrayList<UppaalLocation> locations=new ArrayList<UppaalLocation>();
-	ArrayList<UppaalTransition>transitions=new ArrayList<UppaalTransition>();
+	String Name;//自动机名称
+	ArrayList<UppaalLocation> locations=new ArrayList<UppaalLocation>();//状态集合
+	ArrayList<UppaalTransition>transitions=new ArrayList<UppaalTransition>();//迁移集合
 	
 	public String getName() 
 	{

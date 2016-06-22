@@ -2,23 +2,39 @@ package uml;
 
 public class UppaalTransition 
 {
-	String sourceId;
-	String targetId;
-	int sourceIdForUPPAAL;
-	int tatgetIdForUPPAAL;
+	String sourceId;//源点状态id
+	String targetId;//目标状态id
+	
 	int id;
 	String Kind = "synchronisation";
-	String nameText;
-	String nameT="null";
-	String nameS="null";
-	String T1 = "0";
-	String T2 = "0";
-	String SEQDC="null";//1 消息上的时间约束
-	String DCBM="null";//2 状态上的时间约束
-	String SEQDO="null";//3
+	String nameText;//消息名（包含条件）
+	String nameS="null";//源点状态名称
+	String nameT="null";//目标状态名称
+	
+	String SEQDC="null";//1
+	String DCBM="null";//2   对应状态上的时间约束
+	String SEQDO="null";//3 消息上的时间约束
 	String SEQTC="null";//4
 	String SEQTO="null";//5
 	
+	String inString;//输入
+	String outString;//输出
+	
+	String T1 = "0";	
+	String T2 = "0";
+	
+	public String getInString() {
+		return inString;
+	}
+	public void setInString(String inString) {
+		this.inString = inString;
+	}
+	public String getOutString() {
+		return outString;
+	}
+	public void setOutString(String outString) {
+		this.outString = outString;
+	}
 	public String getSEQDC() {
 		return SEQDC;
 	}

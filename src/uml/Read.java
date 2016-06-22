@@ -1,10 +1,13 @@
 package uml;
 
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import javax.print.DocFlavor.STRING;
 
 import org.dom4j.Element;
 
@@ -60,7 +63,12 @@ public class Read
 				
 				//获得这张图所有elements 
 				ArrayList <Element> elements = new ArrayList <Element>();
-				elements.addAll(diagramI.element("elements").elements("element"));
+				try {
+					elements.addAll(diagramI.element("elements").elements("element"));
+				} catch (Exception e) {
+					
+				}
+				
 				
 				//遍历elements 设置ids
 				ArrayList <String> ids = new ArrayList<String>();	
@@ -98,6 +106,7 @@ public class Read
 			Element elmessage=EAmessagesIterator.next();
 			MessageClass message=new MessageClass();
 			message.setSequenceMsgId(elmessage.attribute("id").getValue());
+			if(elmessage.attribute("name") != null)
 			message.setSequenceMsgName(elmessage.attribute("name").getValue());
 			message.setSequenceMsgSendEvent(elmessage.attribute("sendEvent").getValue());
 			message.setMessageSort(elmessage.attribute("messageSort").getValue());
@@ -111,11 +120,18 @@ public class Read
 			connectorsMsg.setConnectorId(elConnector.attribute("idref").getValue());
 			connectorsMsg.setSourceId(elConnector.element("source").attribute("idref").getValue());
 			connectorsMsg.setTragetId(elConnector.element("target").attribute("idref").getValue());
+			if(elConnector.element("properties").attribute("name") != null)
 			connectorsMsg.setName(elConnector.element("properties").attribute("name").getValue());
 
 			if (elConnector.element("style").attribute("value")!=null) {
 				String styleValue=elConnector.element("style").attribute("value").getValue();
 				connectorsMsg.setStyleValue(styleValue);
+				String io = GetAliasIo(styleValue);
+				if (io != null && io.equals("in")) {
+					connectorsMsg.setInString(elConnector.element("extendedProperties").attributeValue("privatedata2"));
+				} else if (io != null && io.equals("out")){
+					connectorsMsg.setOutString(elConnector.element("extendedProperties").attributeValue("privatedata2"));
+				}
 			} 
 			umlConnectors.add(connectorsMsg);
 		}
@@ -137,6 +153,11 @@ public class Read
 					messageComplete.sourceId = connectorsI.getSourceId();
 					messageComplete.tragetId = connectorsI.getTragetId();
 					messageComplete.styleValue = connectorsI.getStyleValue();
+					if (connectorsI.getInString() != null) {
+						messageComplete.setInString(connectorsI.getInString());
+					} else if (connectorsI.getOutString() != null){
+						messageComplete.setOutString(connectorsI.getOutString());
+					}
 				}
 			}
 			umlMessageComplete.add(messageComplete);
@@ -177,6 +198,8 @@ public class Read
 					messageX.setFromId(MC.getSourceId());
 					messageX.setToId(MC.getTragetId());
 					messageX.setStyleValue(MC.styleValue);
+					messageX.setInString(MC.inString);
+					messageX.setOutString(MC.outString);
 					messageX.setT1(T1);
 					messageX.setT2(T2);
 					messageX.setEnerge(Energe);
@@ -189,6 +212,10 @@ public class Read
 		for(Iterator<Element> fragListIterator=EAfragmentList.iterator();fragListIterator.hasNext();)//遍历所有fragment
 		{
 			Element fragment=fragListIterator.next();
+			if (fragment.attributeValue("id").equals("EAID_BD50CFEE_3602_40ff_B884_E6438771B272")) {
+				int a = 0;
+				a++;
+			}
 			if(fragment.attribute("type").getValue().equals("uml:OccurrenceSpecification"))
 			{	
 				String sourceID = fragment.attribute("id").getValue();
@@ -430,7 +457,14 @@ public class Read
 			message.setEnerge(EAmessage.getEnerge());
 			message.setR1(EAmessage.getR1());
 			message.setR2(EAmessage.getR2());
+			if (EAmessage.getInString() != null) {
+				message.setInString(EAmessage.getInString());
+			}
+			if (EAmessage.getOutString() != null) {
+				message.setOutString(EAmessage.getOutString());
+			}
 			//2.
+			if(EAmessage.getStyleValue() != null)
 			setMessageTimeDurations(message, EAmessage.getStyleValue());
 			for(Iterator<WJFragment> fragIterator=umlFragment.iterator();fragIterator.hasNext();)
 			{
@@ -487,6 +521,28 @@ public class Read
 		umlAllDiagramData.addAll(displayDiagrams);
 		
 	}
+//"paramvalues=barometer;;;;;;alias=io=in,;"
+	private String GetAliasIo(String styleValue) {
+		String[] strings = styleValue.split(";");
+		for (int i = 0; i < strings.length; i++) {
+			if (strings[i].contains("alias=")) {//strings[i] = "alias=io=in,a=1,"
+				String stringValue = strings[i].split("alias=")[1];//"io=in,a=1,"
+				String[] values = stringValue.split(",");
+				for (int j = 0; j < values.length; j++) {
+					if (values[j].contains("io")) {
+						if (values[j].contains("in")) {
+							return "in";
+						} else {
+							return "out";
+						}
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+
 /*method-----------------------------------------------------------*/	
 	private void DFSDiagramByREF(WJDiagramsData diagramData) {
 		if (diagramData.refArray.size() == 0) {//本身没有引用 或者引用已经被删光了 已经是完全图 
@@ -501,6 +557,7 @@ public class Read
 		}
 		diagramData.refArray.clear();
 	}
+	public static WJMessage testMessage = new WJMessage();
 	//将合并完成的没有引用的完全子图 合并到 父图
 	private void fixDiagramData(WJDiagramsData diagramData, WJDiagramsData childDiagram, REF ref) {
 		//添加lifeline
@@ -554,21 +611,21 @@ public class Read
 			}
 		}
 		//添加要展示的图  复制diagramData
-		WJDiagramsData displaySD = new WJDiagramsData();
-		displaySD.diagramID = diagramData.diagramID + "-----display" + diagramData.displayCount;
-		displaySD.name = diagramData.name + "-----display" + diagramData.displayCount;
-		displaySD.fragmentArray.addAll(diagramData.fragmentArray);
-		displaySD.lifelineArray.addAll(diagramData.lifelineArray);
-		displaySD.messageArray.addAll(diagramData.messageArray);
-		displaySD.ids.addAll(diagramData.ids);
-		displaySD.refArray.addAll(diagramData.refArray);
-		displaySD.RefEndTo = diagramData.RefEndTo;
-		diagramData.displayCount++;
-		//去掉refendto之后的消息
-		while(displaySD.messageArray.size() > displaySD.RefEndTo) {
-			displaySD.messageArray.remove(displaySD.RefEndTo);
-		}
-		displayDiagrams.add(displaySD);
+//		WJDiagramsData displaySD = new WJDiagramsData();
+//		displaySD.diagramID = diagramData.diagramID + "-----display" + diagramData.displayCount;
+//		displaySD.name = diagramData.name + "-----display" + diagramData.displayCount;
+//		displaySD.fragmentArray.addAll(diagramData.fragmentArray);
+//		displaySD.lifelineArray.addAll(diagramData.lifelineArray);
+//		displaySD.messageArray.addAll(diagramData.messageArray);
+//		displaySD.ids.addAll(diagramData.ids);
+//		displaySD.refArray.addAll(diagramData.refArray);
+//		displaySD.RefEndTo = diagramData.RefEndTo;
+//		diagramData.displayCount++;
+//		//去掉refendto之后的消息
+//		while(displaySD.messageArray.size() > displaySD.RefEndTo) {
+//			displaySD.messageArray.remove(displaySD.RefEndTo);
+//		}
+//		displayDiagrams.add(displaySD);
 		
 
 	}
@@ -616,11 +673,15 @@ public class Read
 //				message.setDCBM(nameAndValue[1]);
 //			}
 //		}
-		String[] str1 = styleValue.split("DCBM=");
-		String[] str2 = str1[1].split("SEQDO=");
+		try {
+		String[] str0 = styleValue.split(";DCBMX=0;");
+		String[] str1 = str0[0].split("DCBM=");
+		String[] str2 = str1[0].split("SEQDO=");
 		message.setSEQDO(str2[1]);
-		message.setDCBM(str2[0]);
-		
+		message.setDCBM(null);
+		} catch (Exception e) {
+			
+		}
 	}
 
 	public ArrayList<REF> getUmlREF() {

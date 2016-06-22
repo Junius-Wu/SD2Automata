@@ -64,7 +64,8 @@ public class Write
 		    	Element name2=loc.addElement("name");
 		    	name2.addAttribute("x", xx);
 		    	name2.addAttribute("y", yy);
-		    	name2.setText(location.getObjName()+":"+location.getName()+"|"+location.getTimeDuration());
+		    	name2.setText(location.getObjName()+":"+location.getName());
+		    	//+"|"+location.getTimeDuration());
 		    	
 		    	/*Element name3=loc.addElement("R1R2");
 		    	name3.addAttribute("x", xx);
@@ -91,6 +92,7 @@ public class Write
 		    	tran.addAttribute("T1", transition.getT1());
 		    	tran.addAttribute("T2", transition.getT2());
 				tran.addAttribute("timeDuration", transition.getSEQDO());
+				
 //				
 //				tran.addElement("label").addAttribute("kind","guard")
 //										.addText("DCBM = " + transition.getDCBM()+","+
@@ -99,7 +101,11 @@ public class Write
 //												"SEQTC = " + transition.getSEQTC()+","+
 //												"SEQTO = " + transition.getSEQTO()
 //												);
-		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(transition.getNameText()+"|"+transition.getSEQDO());
+		    	//tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(transition.getNameText()+"|"+transition.getSEQDO()+"|in::"+transition.inString+"|out::"+transition.outString);
+		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).
+		    	addAttribute("y", yy).setText(
+		    			transition.getNameText()+"|"+transition.getSEQDO());
+		    	
 		    	//System.out.println(transition.getNameText()+"/["+transition.getT1()+","+transition.getT2()+"]");
 		    } 
 		}

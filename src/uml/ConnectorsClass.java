@@ -8,6 +8,21 @@ public class ConnectorsClass {
 	String name="null";
 	String messageSort="null";
 	String styleValue;
+	String inString;
+	String outString;
+	
+	public String getInString() {
+		return inString;
+	}
+	public void setInString(String inString) {
+		this.inString = inString;
+	}
+	public String getOutString() {
+		return outString;
+	}
+	public void setOutString(String outString) {
+		this.outString = outString;
+	}
 	public String getStyleValue() {
 		return styleValue;
 	}

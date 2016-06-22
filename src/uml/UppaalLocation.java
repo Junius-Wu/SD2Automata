@@ -1,19 +1,16 @@
 package uml;
 
 public class UppaalLocation {
-	Boolean init=false; //初始状态
-	Boolean fnal=false; //结束状态
+	Boolean init=false; //是否是初始状态
+	Boolean fnal=false; //是否结束状态
 	String Name="null"; //名称
-	String id;
-	int Type=0;   //0为正常 1为紧迫
-//	String lineEAID="null";
-//	String Invariant="null";
-	String R1 = "0";
-	String R2 = "0";
-	String Energe = "0";
-	String ObjId = "NULL";
-	String ObjName = "";
-	String timeDuration;
+	String id;			//状态id
+	String R1 = "0";	//资源1占用
+	String R2 = "0";	//资源2占用
+	String Energe = "0";//单位时间损耗的能源
+	String ObjId = "NULL";//对象的EAid
+	String ObjName = "";//对象名
+	String timeDuration;//时间约束
 	
 	public String getTimeDuration() {
 		return timeDuration;
@@ -45,12 +42,12 @@ public class UppaalLocation {
 	public void setId(String id) {
 		this.id = id;
 	}
-	public int getType() {
-		return Type;
-	}
-	public void setType(int type) {
-		Type = type;
-	}
+//	public int getType() {
+//		return Type;
+//	}
+//	public void setType(int type) {
+//		Type = type;
+//	}
 //	public String getLineEAID() {
 //		return lineEAID;
 //	}

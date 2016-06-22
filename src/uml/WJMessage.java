@@ -16,24 +16,42 @@ public class WJMessage implements Cloneable{//消息
     }   
 	String inFragId="null";//在哪个片段中
 	String inFragName="null";
-	String connectorId="null";
+	String connectorId="null";//zijide id
 	String sourceId="null";
 	String tragetId="null";
 	String name="null";
 	String sendEvent="null";
-	String fromId;
+	String fromId;//从哪个对象到哪个对象
 	String toId;	
+	String receiveAndSend = "null";
+	String inString;
+	String outString;
+	
 	String T1;
 	String T2;
 	String Energe;
 	String R1;
 	String R2;
-	String receiveAndSend = "null";
+	
 	String SEQDC;
 	String SEQDO;
 	String SEQTC;
 	String SEQTO;
 	String DCBM;
+	
+	
+	public String getInString() {
+		return inString;
+	}
+	public void setInString(String inString) {
+		this.inString = inString;
+	}
+	public String getOutString() {
+		return outString;
+	}
+	public void setOutString(String outString) {
+		this.outString = outString;
+	}
 	public String getSEQDC() {
 		return SEQDC;
 	}

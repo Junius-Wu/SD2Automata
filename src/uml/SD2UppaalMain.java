@@ -52,7 +52,7 @@ public class SD2UppaalMain {
 		
 		
 		SAXReader reader=new SAXReader();//获取解析器
-	    Document dom= reader.read("EAtime.xml");//解析XML获取代表整个文档的dom对象
+	    Document dom= reader.read("sdtest.xml");//解析XML获取代表整个文档的dom对象
 	    Element root=dom.getRootElement();//获取根节点
 	    
 	    Read uml=new Read();
@@ -71,8 +71,9 @@ public class SD2UppaalMain {
 	    	
 	    	//获得第i个图
 	    	WJDiagramsData diagramDaraI = DiagramsDataListIterator.next();
-	    	
-	    	System.out.println("***************************************");
+	    	if (diagramDaraI.name.equals("arm_motors_check")) {
+	    		System.out.println("***************************************");
+			}
 		    System.out.println("正在处理图名为:"+diagramDaraI.name);
 		    
 		    //初始化
@@ -126,7 +127,7 @@ public class SD2UppaalMain {
 			    if(messages.size() == 0)//没有消息
 			    {	    	
 			    	System.out.println("没有找到message，退出");
-			    	System.exit(0);
+			    	continue;
 			    }
 			    else
 			    {//有消息
@@ -463,21 +464,23 @@ public class SD2UppaalMain {
 	//连接map
 			    //Queue receiveAndSend = new LinkedList();
 			    boolean isSelfMessage = false;
-			    for(int i=0;i<locationList.size();i++)
+			    for(int i=0;i<locationList.size();i++) {
 		    		for(int j=0;j<locationList.size();j++)
 		    		{
 		    			if(map[i][j] >= 1)
 			    		{
 		    				
 			    			//message
-							WJMessage messageI = messageList.get(j-1);
+		    				WJMessage messageJ = messageList.get(j-1);
+		    				
+							
 							
 							String receiveOrSend = "";
 							
-							if(messageI.getReceiveAndSend().equals("null"))//处理自己到自己的消息造成的2个重复的transition 改为一个！一个？
+							if(messageJ.getReceiveAndSend().equals("null"))//处理自己到自己的消息造成的2个重复的transition 改为一个！一个？
 							{	
 						    		
-								if(messageI.getFromId().substring(13).equals(messageI.getToId().substring(13)))
+								if(messageJ.getFromId().substring(13).equals(messageJ.getToId().substring(13)))
 					    		{	
 					    			receiveOrSend+="!?";
 					    		}		
@@ -492,11 +495,67 @@ public class SD2UppaalMain {
 							}
 							else
 							{
-								receiveOrSend = messageI.getReceiveAndSend();
+								receiveOrSend = messageJ.getReceiveAndSend();
 							}
 							
-				    			
-				    		
+							//需要加上opt后else 为 !(opt条件)
+							String elseCondition = "";
+							if (i >= 1 && j >= 2) {
+								String TypeAndConditionI = getTypeAndnCondition(messageList.get(i - 1));
+								String TypeAndConditionStart = getTypeAndnCondition(messageList.get(i));
+								String TypeAndConditionEnd = getTypeAndnCondition(messageList.get(j - 2));
+								String TypeAndConditionJ = getTypeAndnCondition(messageList.get(j-1));
+								//当TypeAndConditionStart和TypeAndConditionEnd的opt数量相等
+								int optCountI = TypeAndConditionI.split("opt").length - 1;
+								int optCountStart = TypeAndConditionStart.split("opt").length - 1;
+								int optCountEnd = TypeAndConditionEnd.split("opt").length - 1;
+								int optCountJ = TypeAndConditionJ.split("opt").length - 1;
+								if(optCountI == optCountJ && optCountEnd == optCountStart && optCountI == optCountStart - 1) {
+									//说明i和j之间是opt
+									//对比 TypeAndConditionJ 和 TypeAndConditionEnd & TypeAndConditionStart
+									//多出来的opt条件就是需要添加的!opt条件
+									//J
+									String allTypeJ = TypeAndConditionJ.split("]")[0].substring(1);
+									String[] typesJ = allTypeJ.split("-");
+									String allConditionJ = TypeAndConditionJ.split("]")[1];
+									String[] conditionsJ = allConditionJ.split("--");
+									
+									//start
+									String allTypeStart = TypeAndConditionStart.split("]")[0].substring(1);
+									String[] typesStart = allTypeStart.split("-");
+									String allConditionStart = TypeAndConditionStart.split("]")[1];
+									String[] conditionsStart = allConditionStart.split("--");
+									
+									//end
+									String allTypeEnd = TypeAndConditionEnd.split("]")[0].substring(1);
+									String[] typesEnd = allTypeEnd.split("-");
+									String allConditionEnd = TypeAndConditionEnd.split("]")[1];
+									String[] conditionsEnd = allConditionEnd.split("--");
+									
+									//遍历 对比opt的条件 加入 opt片段之后 !opt条件
+									for (int k = 0; k < conditionsEnd.length; k++) {
+										if (typesStart[k].equals("opt") && !allTypeJ.contains(conditionsStart[k])) {
+											//是messageJ不包含的opt条件
+											if (elseCondition != "") {
+												elseCondition = "!(" + conditionsStart[k] + ")--" + elseCondition;
+											} else {
+												elseCondition = "!(" + conditionsStart[k] + ")";
+											}
+											
+										}
+										if (typesEnd[k].equals("opt") && !allTypeJ.contains(conditionsEnd[k]) 
+												&& !conditionsEnd[k].equals(conditionsStart[k])) {
+											//是messageJ不包含的opt条件
+											if (elseCondition != "") {
+												elseCondition = "!(" + conditionsEnd[k] + ")--" + elseCondition;
+											} else {
+												elseCondition = "!(" + conditionsEnd[k] + ")";
+											}
+										}
+									}
+								}
+								
+							}
 				    		
 							//location 起点
 							UppaalLocation lastLocation0=locationList.get(i);
@@ -505,7 +564,10 @@ public class SD2UppaalMain {
 							UppaalTransition transition = new UppaalTransition();
 							if(isSelfMessage && receiveOrSend.equals("!"))
 							{  
-								transition = setTransition(messageI,m_id++,messageI.getName()+"!"+getTypeAndnCondition(messageI),
+								String typeAndCondition = getTypeAndnCondition(messageJ) ;
+								if(elseCondition != "")
+									typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
+								transition = setTransition(messageJ,m_id++,messageJ.getName()+"!"+typeAndCondition,
 			    	    				lastLocation0.getId(),lastLocation0.getName(),
 			        					location.getId(),    location.getName(),
 				    					"0","0");//如果是自己到自己的消息 则让回来的t1 t2变为0 避免重复计算能源损耗问题
@@ -513,16 +575,20 @@ public class SD2UppaalMain {
 								isSelfMessage = false;
 								
 							}else{	
-								transition = setTransition(messageI,m_id++,messageI.getName()+receiveOrSend+getTypeAndnCondition(messageI),
+								String typeAndCondition = getTypeAndnCondition(messageJ) ;
+								if(elseCondition != "")
+									typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
+								transition = setTransition(messageJ,m_id++,messageJ.getName()+receiveOrSend+typeAndCondition,
 			    	    				lastLocation0.getId(),lastLocation0.getName(),
 			        					location.getId(),    location.getName(),
-			        					messageI.getT1(),messageI.getT2());
+			        					messageJ.getT1(),messageJ.getT2());
 								template.transitions.add(transition);
 		    	    		
 							}
 		    	    		
 		    			}
 		    		}
+			    }
 	//在最后根据map添加transition
 			    
 			    }//message
@@ -781,27 +847,12 @@ public class SD2UppaalMain {
 		transition.setSEQDO(messageI.SEQDO);
 		transition.setSEQTC(messageI.SEQTC);
 		transition.setSEQTO(messageI.SEQTO);
+		transition.setInString(messageI.inString);
+		transition.setOutString(messageI.outString);
 		return transition;
 	}
 	
-	public static String getTypeAndnCondition(WJMessage messageI)
-	{
-		String nCondition = "";
-		String type = "";
-		String id = messageI.getInFragId();
-		while(!id.equals("null"))//对所有条件进行交集  
-		{
-			
-			nCondition =   id_fragment.get(id).getFragCondition()+"&&"+nCondition; 
-			
-			type = id_fragment.get(id).getFragType()+"-"+type;
-			id=id_fragment.get(id).getBigId();
-		}
-		if(type.equals(""))
-		return "";
-		else
-		return "["+type.substring(0,type.length()-1)+"]"+"/"+nCondition.substring(0,nCondition.length()-2)+"/";
-	}
+	
 	public static void setMap( HashSet <Integer> a,HashSet <Integer> b)
 	{//连接a到b
 		
@@ -822,5 +873,22 @@ public class SD2UppaalMain {
 			}
 		}
 		return ;
+	}
+	public static String getTypeAndnCondition(WJMessage messageI)
+	{
+		String nCondition = "";
+		String type = "";
+		String id = messageI.getInFragId();
+		boolean isInSameOpt = false;
+		while(!id.equals("null"))//对所有条件进行交集  
+		{
+			nCondition =   id_fragment.get(id).getFragCondition()+"--"+nCondition; 
+			type = id_fragment.get(id).getFragType()+"-"+type;
+			id=id_fragment.get(id).getBigId();
+		}
+		if(type.equals(""))
+		return "";
+		else
+		return "["+type.substring(0,type.length()-1)+"]"+"/"+nCondition.substring(0,nCondition.length()-2);
 	}
 }
