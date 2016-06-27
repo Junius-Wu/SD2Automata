@@ -514,45 +514,60 @@ public class SD2UppaalMain {
 									//说明i和j之间是opt
 									//对比 TypeAndConditionJ 和 TypeAndConditionEnd & TypeAndConditionStart
 									//多出来的opt条件就是需要添加的!opt条件
+									
+										
 									//J
-									String allTypeJ = TypeAndConditionJ.split("]")[0].substring(1);
-									String[] typesJ = allTypeJ.split("-");
-									String allConditionJ = TypeAndConditionJ.split("]")[1];
-									String[] conditionsJ = allConditionJ.split("--");
-									
-									//start
-									String allTypeStart = TypeAndConditionStart.split("]")[0].substring(1);
-									String[] typesStart = allTypeStart.split("-");
-									String allConditionStart = TypeAndConditionStart.split("]")[1];
-									String[] conditionsStart = allConditionStart.split("--");
-									
-									//end
-									String allTypeEnd = TypeAndConditionEnd.split("]")[0].substring(1);
-									String[] typesEnd = allTypeEnd.split("-");
-									String allConditionEnd = TypeAndConditionEnd.split("]")[1];
-									String[] conditionsEnd = allConditionEnd.split("--");
-									
-									//遍历 对比opt的条件 加入 opt片段之后 !opt条件
-									for (int k = 0; k < conditionsEnd.length; k++) {
-										if (typesStart[k].equals("opt") && !allTypeJ.contains(conditionsStart[k])) {
-											//是messageJ不包含的opt条件
-											if (elseCondition != "") {
-												elseCondition = "!(" + conditionsStart[k] + ")--" + elseCondition;
-											} else {
-												elseCondition = "!(" + conditionsStart[k] + ")";
-											}
-											
-										}
-										if (typesEnd[k].equals("opt") && !allTypeJ.contains(conditionsEnd[k]) 
-												&& !conditionsEnd[k].equals(conditionsStart[k])) {
-											//是messageJ不包含的opt条件
-											if (elseCondition != "") {
-												elseCondition = "!(" + conditionsEnd[k] + ")--" + elseCondition;
-											} else {
-												elseCondition = "!(" + conditionsEnd[k] + ")";
-											}
-										}
+									String[] typesJ;
+									String[] conditionsJ;
+									String allTypeJ;
+									String allConditionJ;
+									if(TypeAndConditionJ.equals("")) {
+										typesJ = new String[]{""};
+										conditionsJ = new String[]{""};
+										allTypeJ = "";
+										allConditionJ = "";
+									} else {
+										allTypeJ = TypeAndConditionJ.split("]")[0].substring(1);
+										typesJ = allTypeJ.split("-");
+										allConditionJ = TypeAndConditionJ.split("]")[1];
+										conditionsJ = allConditionJ.split("--");
 									}
+										
+										
+										//start
+										String allTypeStart = TypeAndConditionStart.split("]")[0].substring(1);
+										String[] typesStart = allTypeStart.split("-");
+										String allConditionStart = TypeAndConditionStart.split("]")[1];
+										String[] conditionsStart = allConditionStart.split("--");
+										
+										//end
+										String allTypeEnd = TypeAndConditionEnd.split("]")[0].substring(1);
+										String[] typesEnd = allTypeEnd.split("-");
+										String allConditionEnd = TypeAndConditionEnd.split("]")[1];
+										String[] conditionsEnd = allConditionEnd.split("--");
+										
+										//遍历 对比opt的条件 加入 opt片段之后 !opt条件
+										for (int k = 0; k < conditionsEnd.length; k++) {
+											if (typesStart[k].equals("opt") && !allTypeJ.contains(conditionsStart[k])) {
+												//是messageJ不包含的opt条件
+												if (elseCondition != "") {
+													elseCondition = "!(" + conditionsStart[k] + ")--" + elseCondition;
+												} else {
+													elseCondition = "!(" + conditionsStart[k] + ")";
+												}
+												
+											}
+											if (typesEnd[k].equals("opt") && !allTypeJ.contains(conditionsEnd[k]) 
+													&& !conditionsEnd[k].equals(conditionsStart[k])) {
+												//是messageJ不包含的opt条件
+												if (elseCondition != "") {
+													elseCondition = "!(" + conditionsEnd[k] + ")--" + elseCondition;
+												} else {
+													elseCondition = "!(" + conditionsEnd[k] + ")";
+												}
+											}
+										}
+									
 								}
 								
 							}
@@ -565,8 +580,13 @@ public class SD2UppaalMain {
 							if(isSelfMessage && receiveOrSend.equals("!"))
 							{  
 								String typeAndCondition = getTypeAndnCondition(messageJ) ;
-								if(elseCondition != "")
-									typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
+								if(!elseCondition.equals("")) {
+									if (typeAndCondition.equals("")) {
+										typeAndCondition = elseCondition;
+									} else {
+										typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
+									}
+								}
 								transition = setTransition(messageJ,m_id++,messageJ.getName()+"!"+typeAndCondition,
 			    	    				lastLocation0.getId(),lastLocation0.getName(),
 			        					location.getId(),    location.getName(),
@@ -576,8 +596,13 @@ public class SD2UppaalMain {
 								
 							}else{	
 								String typeAndCondition = getTypeAndnCondition(messageJ) ;
-								if(elseCondition != "")
-									typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
+								if(!elseCondition.equals("")) {
+									if (typeAndCondition.equals("")) {
+										typeAndCondition = elseCondition;
+									} else {
+										typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
+									}
+								}
 								transition = setTransition(messageJ,m_id++,messageJ.getName()+receiveOrSend+typeAndCondition,
 			    	    				lastLocation0.getId(),lastLocation0.getName(),
 			        					location.getId(),    location.getName(),
