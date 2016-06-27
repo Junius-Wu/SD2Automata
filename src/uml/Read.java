@@ -422,7 +422,7 @@ public class Read
 		// DFS 找出ref 和 ref插入的位置
 		for(Iterator<Element> fragListIterator=EAfragmentList.iterator();fragListIterator.hasNext();) {
 			Element fragment = fragListIterator.next();
-			DFSfragmentListForRef(fragment,lastMessageIDByKeyWithDiagramID,fragListIterator,MessageIDByKeyWithSourceIDAndTargetID);
+			DFSfragmentListForRef(null,null,fragment,lastMessageIDByKeyWithDiagramID,fragListIterator,MessageIDByKeyWithSourceIDAndTargetID);
 		}
 		
 		Iterator iterator=umlFragment.iterator();  //对fragment片段的结构进行调整
@@ -529,7 +529,7 @@ public class Read
 		
 	}
 	
-	private void DFSfragmentListForRef(Element fragment, HashMap<String, String> lastMessageIDByKeyWithDiagramID, Iterator<Element> fragListIterator, HashMap<String, String> messageIDByKeyWithSourceIDAndTargetID) {
+	private void DFSfragmentListForRef(Element fragmentFather,Element operandFather,Element fragment, HashMap<String, String> lastMessageIDByKeyWithDiagramID, Iterator<Element> fragListIterator, HashMap<String, String> messageIDByKeyWithSourceIDAndTargetID) {
 
 		if (fragment.attributeValue("type").equals("uml:OccurrenceSpecification")) {//是一条消息
 			String sourceID = fragment.attribute("id").getValue();
@@ -547,9 +547,20 @@ public class Read
 			ref.setDiagramName(fragment.attributeValue("name"));
 			String diagramID = findDiagramIDByChildID(ref.getRefID());//找到这个ref所属的diagram
 			ref.setLastMessageID(lastMessageIDByKeyWithDiagramID.get(diagramID));//设置ref的lastmessageID为这个图的lastmessageID
+			if (operandFather == null) {
+				ref.setInFragID("null");
+				ref.setInFragName("SD");
+			} else {
+				if (fragmentFather.attributeValue("interactionOperator").equals("par") 
+						|| fragmentFather.attributeValue("interactionOperator").equals("alt")) {
+					ref.setInFragID(operandFather.attributeValue("id"));
+				} else {
+					ref.setInFragID(fragmentFather.attributeValue("id"));
+				}
+				
+				ref.setInFragName(fragmentFather.attributeValue("interactionOperator"));
+			}
 			
-			ref.setInFragID("null");
-			ref.setInFragName("SD");
 			lastMessageIDByKeyWithDiagramID.put(diagramID, "REF:"+ref.getInFragID());//做一个REF标记
 			umlREF.add(ref);
 		}
@@ -557,14 +568,16 @@ public class Read
 		if(fragment.attribute("type").getValue().equals("uml:CombinedFragment")) {
 			ArrayList<Element> operandList = new ArrayList<>();
 			operandList.addAll(fragment.elements("operand"));
+			
 			ArrayList<Element> EAfragmentListChild=new ArrayList();
 			for(Element operand : operandList) {
 				EAfragmentListChild.addAll(operand.elements("fragment"));
+				for(Iterator<Element> fragListIteratorChild = EAfragmentListChild.iterator();fragListIteratorChild.hasNext();) {
+					Element fragmentChild = fragListIteratorChild.next();
+					DFSfragmentListForRef(fragment,operand,fragmentChild,lastMessageIDByKeyWithDiagramID,fragListIteratorChild,messageIDByKeyWithSourceIDAndTargetID);
+				}
 			}
-			for(Iterator<Element> fragListIteratorChild = EAfragmentListChild.iterator();fragListIteratorChild.hasNext();) {
-				Element fragmentChild = fragListIteratorChild.next();
-				DFSfragmentListForRef(fragmentChild,lastMessageIDByKeyWithDiagramID,fragListIteratorChild,messageIDByKeyWithSourceIDAndTargetID);
-			}
+			
 		}
 	}
 
