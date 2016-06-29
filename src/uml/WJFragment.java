@@ -21,7 +21,8 @@ public class WJFragment implements Cloneable{//×éºÏÆ¬¶Î
 		
 	String BigId="null";
 	String comId="null";
-	 
+	
+	WJRectangle rectangle;
 	public String getComId() {
 		return comId;
 	}

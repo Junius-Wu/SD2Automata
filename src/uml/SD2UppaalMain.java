@@ -510,7 +510,7 @@ public class SD2UppaalMain {
 								int optCountStart = TypeAndConditionStart.split("opt").length - 1;
 								int optCountEnd = TypeAndConditionEnd.split("opt").length - 1;
 								int optCountJ = TypeAndConditionJ.split("opt").length - 1;
-								if(optCountI == optCountJ && optCountEnd == optCountStart && optCountI == optCountStart - 1) {
+								if(optCountI == optCountJ && optCountEnd == optCountStart && optCountI < optCountStart ) {
 									//说明i和j之间是opt
 									//对比 TypeAndConditionJ 和 TypeAndConditionEnd & TypeAndConditionStart
 									//多出来的opt条件就是需要添加的!opt条件
@@ -537,13 +537,13 @@ public class SD2UppaalMain {
 										//start
 										String allTypeStart = TypeAndConditionStart.split("]")[0].substring(1);
 										String[] typesStart = allTypeStart.split("-");
-										String allConditionStart = TypeAndConditionStart.split("]")[1];
+										String allConditionStart = TypeAndConditionStart.split("]/")[1];
 										String[] conditionsStart = allConditionStart.split("--");
 										
 										//end
 										String allTypeEnd = TypeAndConditionEnd.split("]")[0].substring(1);
 										String[] typesEnd = allTypeEnd.split("-");
-										String allConditionEnd = TypeAndConditionEnd.split("]")[1];
+										String allConditionEnd = TypeAndConditionEnd.split("]/")[1];
 										String[] conditionsEnd = allConditionEnd.split("--");
 										
 										//遍历 对比opt的条件 加入 opt片段之后 !opt条件
@@ -553,7 +553,7 @@ public class SD2UppaalMain {
 												if (elseCondition != "") {
 													elseCondition = "!(" + conditionsStart[k] + ")--" + elseCondition;
 												} else {
-													elseCondition = "!(" + conditionsStart[k] + ")";
+													elseCondition = "/!(" + conditionsStart[k] + ")";
 												}
 												
 											}
@@ -563,7 +563,7 @@ public class SD2UppaalMain {
 												if (elseCondition != "") {
 													elseCondition = "!(" + conditionsEnd[k] + ")--" + elseCondition;
 												} else {
-													elseCondition = "!(" + conditionsEnd[k] + ")";
+													elseCondition = "/!(" + conditionsEnd[k] + ")";
 												}
 											}
 										}

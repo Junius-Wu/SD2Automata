@@ -75,7 +75,11 @@ public class Read
 				for(Iterator<Element>  elementsIterator=elements.iterator();elementsIterator.hasNext();)
 				{
 					Element elementI = elementsIterator.next();
-					ids.add(elementI.attributeValue("subject").substring(13));//取得13位之后的id属性 因为actor的id只有后面13位是相符的
+					String id = elementI.attributeValue("subject");
+					String value = elementI.attributeValue("geometry");
+					ids.add(id.substring(13));//取得13位之后的id属性 因为actor的id只有后面13位是相符的
+					WJRectangle rectangle = FixFragmentTool.rectangleFromValueString(value);
+					FixFragmentTool.rectangleById.put(id, rectangle);
 				}
 				
 				//获得这张图的name
@@ -444,6 +448,33 @@ public class Read
     		}
 		}
 //***************************************	 组合片段的嵌套读取	end	
+		//虽然这里已经获得了组合片段的嵌套读取， 由于EA导出时组合片段的嵌套关系有可能会错乱， 需要用坐标信息作验证， 不符合的进行修正
+		ArrayList<Element> EAElements = new ArrayList<>();
+		EAElements.addAll(root.element("Extension").element("elements").elements("element"));
+		for(Element element : EAElements) {
+			try{
+				FixFragmentTool.xrefValueById.put(element.attributeValue("idref"), 
+						element.element("xrefs").attributeValue("value"));//这个字符串中有操作域的高度size
+			} catch (Exception e) {
+				
+			}
+		}
+		for(WJFragment fragment : umlFragment) {//设置fragment的rectangle
+			if (!fragment.getComId().equals("null")) {//说明是operand 操作域 需要从父fragment中获取边框 ↑
+				try {
+					fragment.rectangle = FixFragmentTool.operandRectangle(fragment);//设置操作域的rectangle
+				} catch (Exception e) {
+					System.out.println("@@@没有找到fragment的rectangle");
+				}
+			} else {
+				try {
+					fragment.rectangle = FixFragmentTool.rectangleById.get(fragment.fragId);
+				} catch (Exception e) {
+					System.out.println("@@@没有找到fragment的rectangle");
+				}
+			}
+		}
+		
 		
 		//设定message最后的值 0.设定各种值 1.设置5种时间约束 2.在哪个fragment中
 		for(Iterator<MessageComplete> messageListIterator=messageList.iterator();messageListIterator.hasNext();)
@@ -506,6 +537,8 @@ public class Read
 					diagramData.getFragmentArray().add(fragment);
 				}
 			}
+			//以top left right bottom 找到外一层的fragment
+			FixFragmentTool.fixFragmentsOfOneDiagram(diagramData.fragmentArray);
 			for(WJMessage message : umlMessageFinal) {
 				if (diagramData.getIds().contains(message.getConnectorId().substring(13))) {
 					diagramData.getMessageArray().add(message);
@@ -531,6 +564,10 @@ public class Read
 	
 	private void DFSfragmentListForRef(Element fragmentFather,Element operandFather,Element fragment, HashMap<String, String> lastMessageIDByKeyWithDiagramID, Iterator<Element> fragListIterator, HashMap<String, String> messageIDByKeyWithSourceIDAndTargetID) {
 
+		if (fragment.attributeValue("id").equals("EAID_BD50CFEE_3602_40ff_B884_E6438771B272")) {
+			int a = 0;
+			a ++;
+		}
 		if (fragment.attributeValue("type").equals("uml:OccurrenceSpecification")) {//是一条消息
 			String sourceID = fragment.attribute("id").getValue();
 			fragment = fragListIterator.next();
@@ -569,8 +606,9 @@ public class Read
 			ArrayList<Element> operandList = new ArrayList<>();
 			operandList.addAll(fragment.elements("operand"));
 			
-			ArrayList<Element> EAfragmentListChild=new ArrayList();
+			
 			for(Element operand : operandList) {
+				ArrayList<Element> EAfragmentListChild=new ArrayList();
 				EAfragmentListChild.addAll(operand.elements("fragment"));
 				for(Iterator<Element> fragListIteratorChild = EAfragmentListChild.iterator();fragListIteratorChild.hasNext();) {
 					Element fragmentChild = fragListIteratorChild.next();
