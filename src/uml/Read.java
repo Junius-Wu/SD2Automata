@@ -427,6 +427,7 @@ public class Read
 		for(Iterator<Element> fragListIterator=EAfragmentList.iterator();fragListIterator.hasNext();) {
 			Element fragment = fragListIterator.next();
 			DFSfragmentListForRef(null,null,fragment,lastMessageIDByKeyWithDiagramID,fragListIterator,MessageIDByKeyWithSourceIDAndTargetID);
+			
 		}
 		
 		Iterator iterator=umlFragment.iterator();  //对fragment片段的结构进行调整
@@ -455,6 +456,18 @@ public class Read
 			try{
 				FixFragmentTool.xrefValueById.put(element.attributeValue("idref"), 
 						element.element("xrefs").attributeValue("value"));//这个字符串中有操作域的高度size
+				for(REF ref: umlREF) {
+					if (element.attributeValue("idref").equals(ref.refID)) {
+						String aliasValue = element.element("properties").attributeValue("alias");
+						String[] strs = aliasValue.split(",");
+						for(String str: strs) {
+							if (str.contains("index=")) {
+								ref.index = Integer.parseInt(str.split("index=")[1]);
+							}
+						}
+ 						
+					}
+				}
 			} catch (Exception e) {
 				
 			}
@@ -547,6 +560,7 @@ public class Read
 			for(REF ref : umlREF) {
 				if (diagramData.getIds().contains(ref.getRefID().substring(13))) {
 					diagramData.getRefArray().add(ref);
+					ref.rectangle = FixFragmentTool.rectangleById.get(ref.refID);
 				}
 			}
 		}
@@ -689,25 +703,34 @@ public class Read
 				message.setInFragName(ref.getInFragName());
 			}
 		}
-		//将copyMessage加到特定位置 : init REF EA
-		//1. init 表示子图的引用在初始 
-		if (ref.getLastMessageID().equals("init")) {
-			diagramData.getMessageArray().addAll(0, copyMessageArray);
-			diagramData.setRefEndTo(copyMessageArray.size());
-		} else if (ref.getLastMessageID().substring(0, 3).equals("REF")) {
-		//2. REF 说明上一个是ref 插入到上一个ref结束之后
-			diagramData.getMessageArray().addAll(diagramData.getRefEndTo(), copyMessageArray);
-			diagramData.setRefEndTo(diagramData.getRefEndTo() + copyMessageArray.size());//设置新的endTo
-		} else {//最后一种最普通的情况 就是直接插入到某个message之后
-			for(int i = 0; i < diagramData.getMessageArray().size(); i++) {
-				if (diagramData.getMessageArray().get(i).getConnectorId().equals(ref.getLastMessageID())) {
-					//找到第n个 插入到n+1位置之前
-					diagramData.getMessageArray().addAll(i + 1, copyMessageArray);
-					diagramData.setRefEndTo(i + copyMessageArray.size() + 1);
-					break;
-				}
-			}
+		
+		//把copyMessage 放到index之后
+		diagramData.getMessageArray().addAll(ref.index, copyMessageArray);
+		for(REF refi : diagramData.refArray) {
+			refi.index += copyMessageArray.size();
 		}
+		
+//		//将copyMessage加到特定位置 : init REF EA
+//		//1. init 表示子图的引用在初始 
+//		if (ref.getLastMessageID().equals("init")) {
+//			diagramData.getMessageArray().addAll(0, copyMessageArray);
+//			diagramData.setRefEndTo(copyMessageArray.size());
+//		} else if (ref.getLastMessageID().substring(0, 3).equals("REF")) {
+//		//2. REF 说明上一个是ref 插入到上一个ref结束之后
+//			diagramData.getMessageArray().addAll(diagramData.getRefEndTo(), copyMessageArray);
+//			diagramData.setRefEndTo(diagramData.getRefEndTo() + copyMessageArray.size());//设置新的endTo
+//		} else {//最后一种最普通的情况 就是直接插入到某个message之后
+//			for(int i = 0; i < diagramData.getMessageArray().size(); i++) {
+//				if (diagramData.getMessageArray().get(i).getConnectorId().equals(ref.getLastMessageID())) {
+//					//找到第n个 插入到n+1位置之前
+//					diagramData.getMessageArray().addAll(i + 1, copyMessageArray);
+//					diagramData.setRefEndTo(i + copyMessageArray.size() + 1);
+//					break;
+//				}
+//			}
+//		}
+		
+		
 		//添加要展示的图  复制diagramData
 //		WJDiagramsData displaySD = new WJDiagramsData();
 //		displaySD.diagramID = diagramData.diagramID + "-----display" + diagramData.displayCount;

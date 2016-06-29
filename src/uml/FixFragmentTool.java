@@ -59,9 +59,9 @@ public class FixFragmentTool {
 		int index = 0;
 		double sumH = 0;
 		for(int i = 0; i < nameList.size(); i++) {
+			sumH += sizeList.get(i);
 			if (nameList.get(i).equals(fragment.fragCondition)) {
 				index = i;
-				sumH += sizeList.get(i);
 				break;
 			}
 		}

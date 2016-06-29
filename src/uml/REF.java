@@ -1,6 +1,6 @@
 package uml;
 
-public class REF {
+public class REF{
 
 	String lastMessageID;//3种情况init REF:XXXXX EAXXXX
 
@@ -9,6 +9,8 @@ public class REF {
 	String diagramName;//必须
 	String refID;//暂时没用的属性
 	
+	WJRectangle rectangle;
+	int index;
 	public String getRefID() {
 		return refID;
 	}
