@@ -81,7 +81,7 @@ public class Write
 		    		inittemp=location.getId();
 		    	
 		    }
-		    tem.addElement("init").addAttribute("ref","id"+inittemp);
+		    tem.addElement("init").addAttribute("ref","loc_id"+inittemp);
 		    while(transitonIterator.hasNext())
 		    { 
 		    	UppaalTransition transition=transitonIterator.next();

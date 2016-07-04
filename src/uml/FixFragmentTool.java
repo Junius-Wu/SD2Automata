@@ -86,14 +86,32 @@ public class FixFragmentTool {
 		  return f1.rectangle.top > (f2.rectangle.top) ? 1 : -1;
 		 }
 	}
-	public static void fixFragmentsOfOneDiagram(ArrayList<WJFragment> fragmentArray) {
-		Collections.sort(fragmentArray, new SortByTop());
-		for (int i = 1; i < fragmentArray.size(); i++) {
-			WJFragment fragmentI = fragmentArray.get(i);
+	public static void fixFragmentsOfOneDiagram(WJDiagramsData diagramData) {
+		ArrayList<WJFragment> fragments = diagramData.getFragmentArray();
+		ArrayList<REF> refs = diagramData.getRefArray();
+		
+		Collections.sort(fragments, new SortByTop());
+		for (int i = 1; i < fragments.size(); i++) {
+			WJFragment fragmentI = fragments.get(i);
 			for (int j = i - 1; j >= 0; j--) {
-				WJFragment fragmentJ = fragmentArray.get(j);
+				WJFragment fragmentJ = fragments.get(j);
 				if (rectangleI_in_rectangleJ(fragmentI.rectangle, fragmentJ.rectangle)) {
 					fragmentI.BigId = fragmentJ.fragId;
+					break;
+				}
+			}
+		}
+		
+		for (int i = 0; i < refs.size(); i++) {
+			
+			REF ref = refs.get(i);
+			if (ref.diagramName.equals("failsafe_battery_event")) {
+				System.out.println("1234");
+			}
+			for (int j = fragments.size() - 1; j >= 0; j--) {
+				WJFragment fragmentJ = fragments.get(j);
+				if (rectangleI_in_rectangleJ(ref.rectangle, fragmentJ.rectangle)) {
+					ref.inFragID = fragmentJ.fragId;
 					break;
 				}
 			}

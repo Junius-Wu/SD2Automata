@@ -477,13 +477,13 @@ public class Read
 				try {
 					fragment.rectangle = FixFragmentTool.operandRectangle(fragment);//设置操作域的rectangle
 				} catch (Exception e) {
-					System.out.println("@@@没有找到fragment的rectangle");
+					System.out.println("@@@没有找到fragment的rectangle---"+fragment.getFragCondition());
 				}
 			} else {
 				try {
 					fragment.rectangle = FixFragmentTool.rectangleById.get(fragment.fragId);
 				} catch (Exception e) {
-					System.out.println("@@@没有找到fragment的rectangle");
+					System.out.println("@@@没有找到fragment的rectangle---"+fragment.getFragCondition());
 				}
 			}
 		}
@@ -550,8 +550,7 @@ public class Read
 					diagramData.getFragmentArray().add(fragment);
 				}
 			}
-			//以top left right bottom 找到外一层的fragment
-			FixFragmentTool.fixFragmentsOfOneDiagram(diagramData.fragmentArray);
+			
 			for(WJMessage message : umlMessageFinal) {
 				if (diagramData.getIds().contains(message.getConnectorId().substring(13))) {
 					diagramData.getMessageArray().add(message);
@@ -563,6 +562,9 @@ public class Read
 					ref.rectangle = FixFragmentTool.rectangleById.get(ref.refID);
 				}
 			}
+			
+			//以top left right bottom 找到外一层的fragment
+			FixFragmentTool.fixFragmentsOfOneDiagram(diagramData);
 		}
 		
 		//图的连接

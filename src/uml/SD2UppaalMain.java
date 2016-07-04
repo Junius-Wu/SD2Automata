@@ -500,7 +500,7 @@ public class SD2UppaalMain {
 							
 							//需要加上opt后else 为 !(opt条件)
 							String elseCondition = "";
-							if (i >= 1 && j >= 2) {
+							if (i >= 1 && j >= 2 && i < messageList.size()) {
 								String TypeAndConditionI = getTypeAndnCondition(messageList.get(i - 1));
 								String TypeAndConditionStart = getTypeAndnCondition(messageList.get(i));
 								String TypeAndConditionEnd = getTypeAndnCondition(messageList.get(j - 2));
