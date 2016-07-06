@@ -24,6 +24,7 @@ public class Read
 	ArrayList<REF> umlREF = new ArrayList<REF>();
 	ArrayList<WJDiagramsData> displayDiagrams = new ArrayList<WJDiagramsData>();//展示用的图
 	HashMap<String , String> findAltsFather = new HashMap<String , String>();
+	static int markId = 0;
 	public boolean hasNoLifeline()
 	{	
 		if(umlLifeLines.isEmpty())                             	
@@ -124,6 +125,7 @@ public class Read
 			connectorsMsg.setConnectorId(elConnector.attribute("idref").getValue());
 			connectorsMsg.setSourceId(elConnector.element("source").attribute("idref").getValue());
 			connectorsMsg.setTragetId(elConnector.element("target").attribute("idref").getValue());
+			connectorsMsg.setPointY(FixFragmentTool.pointYFromValueString(elConnector.element("extendedProperties").attributeValue("sequence_points")));
 			if(elConnector.element("properties").attribute("name") != null)
 			connectorsMsg.setName(elConnector.element("properties").attribute("name").getValue());
 
@@ -131,6 +133,7 @@ public class Read
 				String styleValue=elConnector.element("style").attribute("value").getValue();
 				connectorsMsg.setStyleValue(styleValue);
 				String io = GetAliasIo(styleValue);
+				
 				if (io != null && io.equals("in")) {
 					connectorsMsg.setInString(elConnector.element("extendedProperties").attributeValue("privatedata2"));
 				} else if (io != null && io.equals("out")){
@@ -157,6 +160,7 @@ public class Read
 					messageComplete.sourceId = connectorsI.getSourceId();
 					messageComplete.tragetId = connectorsI.getTragetId();
 					messageComplete.styleValue = connectorsI.getStyleValue();
+					messageComplete.pointY = connectorsI.getPointY();
 					if (connectorsI.getInString() != null) {
 						messageComplete.setInString(connectorsI.getInString());
 					} else if (connectorsI.getOutString() != null){
@@ -209,6 +213,7 @@ public class Read
 					messageX.setEnerge(Energe);
 					messageX.setR1(R1);
 					messageX.setR2(R2);
+					messageX.setPointY(MC.pointY);
 					MessageIDByKeyWithSourceIDAndTargetID.put(messageX.getSourceId()+messageX.getTragetId(), messageX.getConnectorId());
 					messageList.add(messageX);
 				}
@@ -456,18 +461,18 @@ public class Read
 			try{
 				FixFragmentTool.xrefValueById.put(element.attributeValue("idref"), 
 						element.element("xrefs").attributeValue("value"));//这个字符串中有操作域的高度size
-				for(REF ref: umlREF) {
-					if (element.attributeValue("idref").equals(ref.refID)) {
-						String aliasValue = element.element("properties").attributeValue("alias");
-						String[] strs = aliasValue.split(",");
-						for(String str: strs) {
-							if (str.contains("index=")) {
-								ref.index = Integer.parseInt(str.split("index=")[1]);
-							}
-						}
- 						
-					}
-				}
+//				for(REF ref: umlREF) {//index=1, 从alias中获取
+//					if (element.attributeValue("idref").equals(ref.refID)) {
+//						String aliasValue = element.element("properties").attributeValue("alias");
+//						String[] strs = aliasValue.split(",");
+//						for(String str: strs) {
+//							if (str.contains("index=")) {
+//								ref.index = Integer.parseInt(str.split("index=")[1]);
+//							}
+//						}
+// 						
+//					}
+//				}
 			} catch (Exception e) {
 				
 			}
@@ -508,6 +513,7 @@ public class Read
 			message.setEnerge(EAmessage.getEnerge());
 			message.setR1(EAmessage.getR1());
 			message.setR2(EAmessage.getR2());
+			message.setPointY(EAmessage.getPointY());
 			if (EAmessage.getInString() != null) {
 				message.setInString(EAmessage.getInString());
 			}
@@ -560,6 +566,7 @@ public class Read
 				if (diagramData.getIds().contains(ref.getRefID().substring(13))) {
 					diagramData.getRefArray().add(ref);
 					ref.rectangle = FixFragmentTool.rectangleById.get(ref.refID);
+					ref.index = FixFragmentTool.refIndexInDiagram(ref, diagramData);
 				}
 			}
 			
@@ -685,6 +692,8 @@ public class Read
 		ArrayList<WJFragment> copyFragmentArray = new ArrayList<>();
 		for(WJFragment fragment : childDiagram.getFragmentArray()) {//添加所有的组合片段
 			WJFragment copyFragment = (WJFragment) fragment.clone();
+			//改变fragment的id 避免重复引用导致的重复fragment id
+			addFragmentMarkId(copyFragment);
 			if (fragment.BigId.equals("null")) {//最外面层的sd
 				copyFragment.setBigId(ref.getInFragID());	
 			}
@@ -700,6 +709,7 @@ public class Read
 		}
 		//然后将infragID为"null"(说明在SD中) 改为ref片段所在的组合片段id
 		for(WJMessage message : copyMessageArray) {
+			addMessageMarkId(message);
 			if (message.getInFragId().equals("null")) {
 				message.setInFragId(ref.getInFragID());
 				message.setInFragName(ref.getInFragName());
@@ -712,6 +722,7 @@ public class Read
 			refi.index += copyMessageArray.size();
 		}
 		
+		markId ++;
 //		//将copyMessage加到特定位置 : init REF EA
 //		//1. init 表示子图的引用在初始 
 //		if (ref.getLastMessageID().equals("init")) {
@@ -751,6 +762,21 @@ public class Read
 //		displayDiagrams.add(displaySD);
 		
 
+	}
+
+	private void addMessageMarkId(WJMessage message) {
+		message.inFragId += "_"+markId;
+		message.connectorId += "_"+markId;
+	}
+
+	private void addFragmentMarkId(WJFragment copyFragment) {
+		if (copyFragment.BigId != "null") {
+			copyFragment.BigId += "_"+markId;
+		}
+		if (copyFragment.comId != "null") {
+			copyFragment.comId += "_"+markId;
+		}
+		copyFragment.fragId += "_"+markId;
 	}
 
 	private WJDiagramsData findDiagramByName(String diagramName) {

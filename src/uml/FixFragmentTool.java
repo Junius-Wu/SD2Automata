@@ -12,6 +12,26 @@ public class FixFragmentTool {
 	public static HashMap<String, WJRectangle> rectangleById = new HashMap<>();
 	public static HashMap<String, String> xrefValueById = new HashMap<>();
 	
+	public static int refIndexInDiagram(REF ref, WJDiagramsData diagramsData) {
+		int index = 0;
+		double refTop = ref.rectangle.top;
+		for(WJMessage message : diagramsData.getMessageArray()) {
+			if (refTop > message.getPointY()) {
+				index ++;
+			} else {
+				break;
+			}
+		}
+		return index;
+	}
+	
+	public static double pointYFromValueString(String value) {
+		if (value.contains("PtStartY=-")) {
+			return Double.parseDouble(value.split("PtStartY=-")[1].split(";PtEndX=")[0]);
+		}
+		return 0;
+	}
+	
 	public static WJRectangle rectangleFromValueString(String value) {
 		//Left=653;Top=50;Right=743;Bottom=868;
 		//SX=0;SY=0;EX=0;EY=0;Path=;
@@ -105,13 +125,12 @@ public class FixFragmentTool {
 		for (int i = 0; i < refs.size(); i++) {
 			
 			REF ref = refs.get(i);
-			if (ref.diagramName.equals("failsafe_battery_event")) {
-				System.out.println("1234");
-			}
+			
 			for (int j = fragments.size() - 1; j >= 0; j--) {
 				WJFragment fragmentJ = fragments.get(j);
 				if (rectangleI_in_rectangleJ(ref.rectangle, fragmentJ.rectangle)) {
 					ref.inFragID = fragmentJ.fragId;
+					ref.inFragName = fragmentJ.fragType;
 					break;
 				}
 			}

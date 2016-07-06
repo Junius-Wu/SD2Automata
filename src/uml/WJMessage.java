@@ -39,7 +39,15 @@ public class WJMessage implements Cloneable{//ÏûÏ¢
 	String SEQTO;
 	String DCBM;
 	
+	double pointY;
 	
+	
+	public double getPointY() {
+		return pointY;
+	}
+	public void setPointY(double pointY) {
+		this.pointY = pointY;
+	}
 	public String getInString() {
 		return inString;
 	}

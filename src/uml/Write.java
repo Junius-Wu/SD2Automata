@@ -101,10 +101,14 @@ public class Write
 //												"SEQTC = " + transition.getSEQTC()+","+
 //												"SEQTO = " + transition.getSEQTO()
 //												);
-		    	//tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(transition.getNameText()+"|"+transition.getSEQDO()+"|in::"+transition.inString+"|out::"+transition.outString);
-		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).
-		    	addAttribute("y", yy).setText(
-		    			transition.getNameText()+"|"+transition.getSEQDO());
+		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(
+		    			transition.getNameText()+
+		    			"\ntime:"+transition.getSEQDO()+
+		    			"\nin:"+transition.inString+
+		    			"\nout:"+transition.outString);
+		    	//tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).
+		    	//addAttribute("y", yy).setText(
+		    	//		transition.getNameText()+"|"+transition.getSEQDO());
 		    	
 		    	//System.out.println(transition.getNameText()+"/["+transition.getT1()+","+transition.getT2()+"]");
 		    } 

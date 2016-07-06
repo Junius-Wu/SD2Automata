@@ -17,7 +17,14 @@ public class MessageComplete {
 	String styleValue;
 	String inString;
 	String outString;
+	double pointY;
 	
+	public double getPointY() {
+		return pointY;
+	}
+	public void setPointY(double pointY) {
+		this.pointY = pointY;
+	}
 	public String getInString() {
 		return inString;
 	}
