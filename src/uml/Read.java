@@ -1,12 +1,18 @@
 package uml;
 
 import java.awt.Frame;
+import java.security.Policy.Parameters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.crypto.Mac;
+import javax.jws.soap.SOAPBinding.Use;
 import javax.print.DocFlavor.STRING;
 
 import org.dom4j.Element;
@@ -24,7 +30,7 @@ public class Read
 	ArrayList<REF> umlREF = new ArrayList<REF>();
 	ArrayList<WJDiagramsData> displayDiagrams = new ArrayList<WJDiagramsData>();//展示用的图
 	HashMap<String , String> findAltsFather = new HashMap<String , String>();
-	static int markId = 0;
+	static int markId = 0;//标记第几个ref 用于重复id冲突
 	public boolean hasNoLifeline()
 	{	
 		if(umlLifeLines.isEmpty())                             	
@@ -35,9 +41,9 @@ public class Read
 	
 	public void load(Element root) throws Exception
 	{
-		ArrayList<Element> EAlifeLineList=new ArrayList();
-		ArrayList<Element> EAconnectorList=new ArrayList();
-		ArrayList<Element> EAfragmentList=new ArrayList();
+		ArrayList<Element> EAlifeLineList = new ArrayList();
+		ArrayList<Element> EAconnectorList = new ArrayList();
+		ArrayList<Element> EAfragmentList = new ArrayList();
 		ArrayList<Element> EAmessagesList = new ArrayList();
 		
 		//新建一个hashMap用来存储遍历组合片段时得到的lastMessage（对应于diagram）
@@ -67,7 +73,7 @@ public class Read
 				try {
 					elements.addAll(diagramI.element("elements").elements("element"));
 				} catch (Exception e) {
-					
+					System.out.println("exception:图元素");
 				}
 				
 				
@@ -128,16 +134,38 @@ public class Read
 			connectorsMsg.setPointY(FixFragmentTool.pointYFromValueString(elConnector.element("extendedProperties").attributeValue("sequence_points")));
 			if(elConnector.element("properties").attribute("name") != null)
 			connectorsMsg.setName(elConnector.element("properties").attribute("name").getValue());
-
-			if (elConnector.element("style").attribute("value")!=null) {
+			connectorsMsg.use = "null";
+			connectorsMsg.def = "null";
+			if (elConnector.element("style").attribute("value")!=null) {//io信息
 				String styleValue=elConnector.element("style").attribute("value").getValue();
 				connectorsMsg.setStyleValue(styleValue);
 				String io = GetAliasIo(styleValue);
+				String inString = "null";
+				String outString = "null";
+				String parameters = "null";
+				String argument = "null";
+				String returnValue = "null";
+				try {
+					parameters = elConnector.element("extendedProperties").attributeValue("privatedata2").split(";paramsDlg=")[1].split(";")[0];
+					connectorsMsg.use = parameters;
+					argument = styleValue.split(";paramvalues=")[1].split(";")[0];
+					connectorsMsg.def = argument;
+					if (io == null) {
+						returnValue = elConnector.element("extendedProperties").attributeValue("privatedata2").split("retval=")[1].split(";")[0];
+						connectorsMsg.use += "," + returnValue;
+					}
+					
+				} catch(Exception e) {
+					
+				}
 				
+				// 只有当有io=in/out 时 outstring和instring才进行设置
+				outString = returnValue;
+				inString = argument;
 				if (io != null && io.equals("in")) {
-					connectorsMsg.setInString(elConnector.element("extendedProperties").attributeValue("privatedata2"));
-				} else if (io != null && io.equals("out")){
-					connectorsMsg.setOutString(elConnector.element("extendedProperties").attributeValue("privatedata2"));
+					connectorsMsg.setInString(inString);
+				} else if (io != null && io.equals("out")){	
+					connectorsMsg.setOutString(outString);
 				}
 			} 
 			umlConnectors.add(connectorsMsg);
@@ -161,6 +189,8 @@ public class Read
 					messageComplete.tragetId = connectorsI.getTragetId();
 					messageComplete.styleValue = connectorsI.getStyleValue();
 					messageComplete.pointY = connectorsI.getPointY();
+					messageComplete.def = connectorsI.def;
+					messageComplete.use = connectorsI.use;
 					if (connectorsI.getInString() != null) {
 						messageComplete.setInString(connectorsI.getInString());
 					} else if (connectorsI.getOutString() != null){
@@ -208,6 +238,8 @@ public class Read
 					messageX.setStyleValue(MC.styleValue);
 					messageX.setInString(MC.inString);
 					messageX.setOutString(MC.outString);
+					messageX.def = MC.def;
+					messageX.use = MC.use;
 					messageX.setT1(T1);
 					messageX.setT2(T2);
 					messageX.setEnerge(Energe);
@@ -474,7 +506,7 @@ public class Read
 //					}
 //				}
 			} catch (Exception e) {
-				
+				System.out.println("exception:获取操作域高度");
 			}
 		}
 		for(WJFragment fragment : umlFragment) {//设置fragment的rectangle
@@ -514,6 +546,9 @@ public class Read
 			message.setR1(EAmessage.getR1());
 			message.setR2(EAmessage.getR2());
 			message.setPointY(EAmessage.getPointY());
+			
+			message.use = EAmessage.use;
+			message.def = EAmessage.def;
 			if (EAmessage.getInString() != null) {
 				message.setInString(EAmessage.getInString());
 			}
@@ -724,7 +759,7 @@ public class Read
 		
 		markId ++;
 //		//将copyMessage加到特定位置 : init REF EA
-//		//1. init 表示子图的引用在初始 
+		//1. init 表示子图的引用在初始 
 //		if (ref.getLastMessageID().equals("init")) {
 //			diagramData.getMessageArray().addAll(0, copyMessageArray);
 //			diagramData.setRefEndTo(copyMessageArray.size());
@@ -743,29 +778,39 @@ public class Read
 //			}
 //		}
 		
+		if (diagramData.name.equals("UAV")) {
+			int a = 1;
+			a ++;
+		}
 		
 		//添加要展示的图  复制diagramData
-//		WJDiagramsData displaySD = new WJDiagramsData();
-//		displaySD.diagramID = diagramData.diagramID + "-----display" + diagramData.displayCount;
-//		displaySD.name = diagramData.name + "-----display" + diagramData.displayCount;
-//		displaySD.fragmentArray.addAll(diagramData.fragmentArray);
-//		displaySD.lifelineArray.addAll(diagramData.lifelineArray);
-//		displaySD.messageArray.addAll(diagramData.messageArray);
-//		displaySD.ids.addAll(diagramData.ids);
-//		displaySD.refArray.addAll(diagramData.refArray);
-//		displaySD.RefEndTo = diagramData.RefEndTo;
-//		diagramData.displayCount++;
-//		//去掉refendto之后的消息
-//		while(displaySD.messageArray.size() > displaySD.RefEndTo) {
-//			displaySD.messageArray.remove(displaySD.RefEndTo);
-//		}
-//		displayDiagrams.add(displaySD);
-		
+		WJDiagramsData displaySD = new WJDiagramsData();
+		displaySD.diagramID = diagramData.diagramID + "-----display" + diagramData.displayCount;
+		displaySD.name = diagramData.name + "-----display" + diagramData.displayCount;
+		displaySD.fragmentArray.addAll(diagramData.fragmentArray);
+		displaySD.lifelineArray.addAll(diagramData.lifelineArray);
+		displaySD.messageArray.addAll(diagramData.messageArray);
+		displaySD.ids.addAll(diagramData.ids);
+		displaySD.refArray.addAll(diagramData.refArray);
+		displaySD.RefEndTo = diagramData.RefEndTo;	
+		int index =  ref.index - copyMessageArray.size();
+		//  去掉index之后的message  得到这个总图到此ref结束为止
+		while(displaySD.messageArray.size() > index) {
+			displaySD.messageArray.remove(index);
+		}
+		displayDiagrams.add(displaySD);
+		if (displaySD.messageArray.size() != 0) {
+			diagramData.displayCount++;
+		}
+	
 
 	}
 
 	private void addMessageMarkId(WJMessage message) {
-		message.inFragId += "_"+markId;
+		if (message.inFragId !=  "null") {
+			message.inFragId += "_"+markId;
+		}
+		
 		message.connectorId += "_"+markId;
 	}
 
@@ -804,6 +849,7 @@ public class Read
 	}
 
 //DCBMX=0;DCBMGUID={65DF8856-63B5-423a-9BD1-952DEA23D616};SEQDC=10000;SEQDO=10002;SEQTC=10003;SEQTO=10004;DCBM=10001;
+//alias=io=in,;paramvalues=ininininininininin;DCBMX=0;SEQDO=33333333333d>=10s;
 	//message设定5种时间约束
 	private void setMessageTimeDurations(WJMessage message, String styleValue) {
 		if (styleValue == null) return;
@@ -823,13 +869,25 @@ public class Read
 //			}
 //		}
 		try {
-		String[] str0 = styleValue.split(";DCBMX=0;");
-		String[] str1 = str0[0].split("DCBM=");
-		String[] str2 = str1[0].split("SEQDO=");
-		message.setSEQDO(str2[1]);
-		message.setDCBM(null);
-		} catch (Exception e) {
+			String DCBM = "null";
+			String SEQDO = "null";
 			
+			String patternString = "DCBM=([A-Za-z0-9]+)([<>]?)(=?)(\\d+)([.]?)(\\d+)s;";
+			Pattern pattern = Pattern.compile(patternString);
+			Matcher matcher = pattern.matcher(styleValue);
+			if (matcher.find()) {
+				DCBM = matcher.group(0).split("DCBM=")[1];
+			}
+			String patternString1 = "SEQDO=([A-Za-z0-9]+)([<>]?)(=?)(\\d+)([.]?)(\\d+)s;";
+			Pattern pattern1 = Pattern.compile(patternString1);
+			Matcher matcher1 = pattern1.matcher(styleValue);
+			if (matcher1.find()) {
+				SEQDO = matcher1.group(0).split("SEQDO=")[1];
+			}
+			message.setSEQDO(SEQDO);
+			message.setDCBM(DCBM);
+		} catch (Exception e) {
+			System.out.println("exception:时间约束");
 		}
 	}
 

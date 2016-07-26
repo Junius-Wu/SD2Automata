@@ -11,6 +11,10 @@ public class UppaalTransition
 	String nameS="null";//源点状态名称
 	String nameT="null";//目标状态名称
 	
+	String receiveOrSend;
+	String typeAndCondition;
+	String typeId;
+	
 	String SEQDC="null";//1
 	String DCBM="null";//2   对应状态上的时间约束
 	String SEQDO="null";//3 消息上的时间约束
@@ -20,9 +24,30 @@ public class UppaalTransition
 	String inString;//输入
 	String outString;//输出
 	
+	String use;
+	String def;
+	
 	String T1 = "0";	
 	String T2 = "0";
 	
+	public String getTypeId() {
+		return typeId;
+	}
+	public void setTypeId(String typeId) {
+		this.typeId = typeId;
+	}
+	public String getReceiveOrSend() {
+		return receiveOrSend;
+	}
+	public void setReceiveOrSend(String receiveOrSend) {
+		this.receiveOrSend = receiveOrSend;
+	}
+	public String getTypeAndCondition() {
+		return typeAndCondition;
+	}
+	public void setTypeAndCondition(String typeAndCondition) {
+		this.typeAndCondition = typeAndCondition;
+	}
 	public String getInString() {
 		return inString;
 	}

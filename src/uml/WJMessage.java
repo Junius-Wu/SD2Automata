@@ -26,6 +26,12 @@ public class WJMessage implements Cloneable{//消息
 	String receiveAndSend = "null";
 	String inString;
 	String outString;
+	String conditions;
+	String typeId;
+	
+	String use;
+	String def;
+	
 	
 	String T1;
 	String T2;
@@ -42,6 +48,18 @@ public class WJMessage implements Cloneable{//消息
 	double pointY;
 	
 	
+	public String getTypeId() {
+		return typeId;
+	}
+	public void setTypeId(String typeId) {
+		this.typeId = typeId;
+	}
+	public String getConditions() {
+		return conditions;
+	}
+	public void setConditions(String conditions) {
+		this.conditions = conditions;
+	}
 	public double getPointY() {
 		return pointY;
 	}

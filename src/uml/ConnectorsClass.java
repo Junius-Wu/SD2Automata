@@ -10,6 +10,8 @@ public class ConnectorsClass {
 	String styleValue;
 	String inString;
 	String outString;
+	String use;
+	String def;
 	double pointY;
 	
 	

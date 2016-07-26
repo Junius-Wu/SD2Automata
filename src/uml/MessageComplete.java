@@ -17,6 +17,8 @@ public class MessageComplete {
 	String styleValue;
 	String inString;
 	String outString;
+	String def;
+	String use;
 	double pointY;
 	
 	public double getPointY() {

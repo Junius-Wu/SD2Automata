@@ -6,7 +6,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.locks.Condition;
 
 import javax.xml.transform.Templates;
 
@@ -31,11 +33,15 @@ public class SD2UppaalMain {
 	private static int [] altEndTo;
 	private static int [] parEndTo;
 	private static ArrayList<HashSet <Integer>>  F = new ArrayList<HashSet <Integer>>();
+	private static ArrayList<HashSet <Integer>>  F1 = new ArrayList<HashSet <Integer>>();
 	private static ArrayList<HashSet <Integer>>  G = new ArrayList<HashSet <Integer>>();
 	private static HashSet <Integer> endState = new HashSet <Integer>();
 	private static ArrayList <WJLoopFragment> loopFragment = new ArrayList <WJLoopFragment> ();
 	private static Stack <WJParFragment> parFragment = new Stack<WJParFragment>();
 	private static ArrayList <Integer> exAdd = new ArrayList <Integer>();
+	private static String[][] jumpCondition;//（i - 1）->j是不满足opt loop break 进行跳跃的取反条件（(i - 1) j 之间可能是一个或多个单域组合片段）
+	private static ArrayList<ArrayList<HashSet<String>>> jumpConditions;
+	private static String[][] falseConditions;
 	public static void main(String[] args) throws Exception 
 	{
 		//所有图
@@ -75,7 +81,7 @@ public class SD2UppaalMain {
 	    		System.out.println("***************************************");
 			}
 		    System.out.println("正在处理图名为:"+diagramDaraI.name);
-		    
+		   
 		    //初始化
 		    lifeLines.clear();
 		    messages.clear();
@@ -162,10 +168,11 @@ public class SD2UppaalMain {
 			    	map = new int[messages.size()*2+3][messages.size()*2+3];
 			    	
 			    	messageIterator = messages.iterator();
+			    	int messageIndex = -1;
 			    	while(messageIterator.hasNext())//遍历message  建location  建表
 			    	{
 
-			    		
+			    			messageIndex ++;
 		    				WJMessage messageI = messageIterator.next();//1toN	
 			    		
 			    		
@@ -181,7 +188,10 @@ public class SD2UppaalMain {
 					    	
 		//添加location
 			    			UppaalLocation location = setLocation(messageI.getConnectorId().substring(4),messageI.getName());
-			    			location.setTimeDuration(messageI.getDCBM());
+			    			//下一个消息的DCBM
+			    			if (messageIndex != messages.size() - 1) {
+			    				location.setTimeDuration(messages.get(messageIndex + 1).getDCBM());
+							}
 			    			location.setR1(messageI.getR1());
 		    				location.setR2(messageI.getR2()); 
 		    				location.setEnerge(messageI.getEnerge());
@@ -293,7 +303,9 @@ public class SD2UppaalMain {
 		    	loopFragment = new ArrayList <WJLoopFragment> ();
 		    	parFragment.clear();
 	//主要算法
-		    	F = new ArrayList<HashSet <Integer>>();	    		    	
+		    	//初始化F & G
+		    	F = new ArrayList<HashSet <Integer>>();	   
+		    	F1 = new ArrayList<HashSet <Integer>>();	  
 		    	G = new ArrayList<HashSet <Integer>>();
 	
 		    	HashSet <Integer> Fi = new HashSet <Integer>();
@@ -301,6 +313,9 @@ public class SD2UppaalMain {
 		    	HashSet <Integer> Gi = new HashSet <Integer>();
 		    	Gi.add(1);//0能到达1
 		    	G.add(Gi);
+		    	
+		    	//初始化 falseCondition
+		    	jumpCondition = new String[table.size()][table.size()];
 		    	
 			    for(int i = 1; i < table.size()-1; i++)
 			    {
@@ -333,6 +348,13 @@ public class SD2UppaalMain {
 			    Fi = new HashSet<Integer>();
 			    Fi.add(table.size()-1);
 			    F.add(Fi);//最后一个F(i)并不存在，但是添加后作为终态的判定和loop的end判定
+			    for(int i = 0; i < F.size(); i++) {//保存一次跳跃的F 到 F1
+			    	HashSet<Integer> temp1 = new HashSet<>();
+			    	for(int x : F.get(i)) {
+			    		temp1.add(x);
+			    	}
+			    	F1.add(temp1);
+			    }
 			    fixF();//将F从一次跳跃扩张到多次跳跃
 			    
 			    
@@ -349,70 +371,70 @@ public class SD2UppaalMain {
 				    	}
 		    		}
 			    }
-	//par的情况 	
-			    while(!parFragment.isEmpty())
-			    {
-			    	WJParFragment pfrag = parFragment.pop();//先处理里层的par再处理外层的par
-			    	
-			    	int c = pfrag.getC();
-			    	
-			    	for(int i = pfrag.getStart();i<pfrag.getEnd();i++)
-			    	{
-			    		HashSet <Integer> fromList = new HashSet <Integer>();
-				    	HashSet <Integer> toList = new HashSet <Integer>();
-				    	
-			    		String fragId = table.get(i).get(c).getFragId();//i所在的操作域ID
-			    		if(table.get(i).get(c+1).getFragType().equals("none"))
-			    			fromList.add(i);
-			    		else if(
-			    				!table.get(i).get(c+1).getFragType().equals("alt") &&
-			    				!table.get(i).get(c+1).getFragType().equals("par")&&
-			    				!table.get(i).get(c+1).getFragId().equals(table.get(i+1).get(c+1).getFragId())  	    				
-			    				)//如果嵌套的不是alt和par 并且是嵌套的最后一个
-			    		{
-			    			int k = findRightI(i+1);
-			    			for(int j = findStartOfFrag(i,c+1);j<findOutOfFrag(i, c+1);j++)
-			    				if(map[j][k] >= 1)//此被嵌套的组合片段中那些消息能够到达k
-			    					fromList.add(j);
-			    		}
-			    		else if(		    				
-			    				table.get(i).get(c+1).getFragType().equals("alt") || table.get(i).get(c+1).getFragType().equals("par")&&
-			    				!table.get(i).get(c+1).getComId().equals(table.get(i+1).get(c+1).getComId())  	    						
-			    				)//如果是alt或者par 并且是嵌套的最后一个
-			    		{
-			    			int k = findRightI(i+1);
-			    			for(int j = findStartOfAlt(i,c+1);j<findOutOfAlt(i, c+1);j++)
-			    				if(map[j][k] >= 1)
-			    					fromList.add(j);
-			    		}
-			    		else
-			    		{
-			    			continue;//是组合片段的中间部分 不管
-			    		}
-			    		
-			    		for(int t = pfrag.getStart();t<pfrag.getEnd();t++)//to what?
-			    		{
-			    			if(table.get(t).get(c).getFragId().equals(fragId))
-			    				continue;
-			    			if(table.get(t).get(c+1).getFragType().equals("none"))
-			    				toList.add(t);
-			    			else if(!table.get(t).get(c+1).getFragId().equals(table.get(t-1).get(c+1).getFragId())  	    						
-				    				)// 是组合片段的第一个
-			    			{
-			    				
-			    				for(Object o: F.get(t))
-			    		    	{
-			    					int fii = (int) o;
-			    					if(fii < findOutOfFrag(t, c))//跳转时不能跳到操作域之外
-			    						toList.add(fii);
-			    		    	}
-			    			}		  				
-			    		}
-			    		
-			    		setMap(fromList,toList);//设置map[fromList][toList]
-			    			
-			    	}
-			    }
+	//par的情况 //暂不考虑par的情况了
+//			    while(!parFragment.isEmpty())
+//			    {
+//			    	WJParFragment pfrag = parFragment.pop();//先处理里层的par再处理外层的par
+//			    	
+//			    	int c = pfrag.getC();
+//			    	
+//			    	for(int i = pfrag.getStart();i<pfrag.getEnd();i++)
+//			    	{
+//			    		HashSet <Integer> fromList = new HashSet <Integer>();
+//				    	HashSet <Integer> toList = new HashSet <Integer>();
+//				    	
+//			    		String fragId = table.get(i).get(c).getFragId();//i所在的操作域ID
+//			    		if(table.get(i).get(c+1).getFragType().equals("none"))
+//			    			fromList.add(i);
+//			    		else if(
+//			    				!table.get(i).get(c+1).getFragType().equals("alt") &&
+//			    				!table.get(i).get(c+1).getFragType().equals("par")&&
+//			    				!table.get(i).get(c+1).getFragId().equals(table.get(i+1).get(c+1).getFragId())  	    				
+//			    				)//如果嵌套的不是alt和par 并且是嵌套的最后一个消息
+//			    		{
+//			    			int k = findRightI(i+1);
+//			    			for(int j = findStartOfFrag(i,c+1);j<findOutOfFrag(i, c+1);j++)
+//			    				if(map[j][k] >= 1)//此被嵌套的组合片段中那些消息能够到达k
+//			    					fromList.add(j);
+//			    		}
+//			    		else if(		    				
+//			    				table.get(i).get(c+1).getFragType().equals("alt") || table.get(i).get(c+1).getFragType().equals("par")&&
+//			    				!table.get(i).get(c+1).getComId().equals(table.get(i+1).get(c+1).getComId())  	    						
+//			    				)//如果是alt或者par的操作域  并且是操作域的最后一个消息
+//			    		{
+//			    			int k = findRightI(i+1);
+//			    			for(int j = findStartOfAlt(i,c+1);j<findOutOfAlt(i, c+1);j++)
+//			    				if(map[j][k] >= 1)
+//			    					fromList.add(j);
+//			    		}
+//			    		else
+//			    		{
+//			    			continue;//是组合片段的中间部分 不管
+//			    		}
+//			    		
+//			    		for(int t = pfrag.getStart();t<pfrag.getEnd();t++)//to what?
+//			    		{
+//			    			if(table.get(t).get(c).getFragId().equals(fragId))
+//			    				continue;
+//			    			if(table.get(t).get(c+1).getFragType().equals("none"))
+//			    				toList.add(t);
+//			    			else if(!table.get(t).get(c+1).getFragId().equals(table.get(t-1).get(c+1).getFragId())  	    						
+//				    				)// 是组合片段的第一个
+//			    			{
+//			    				
+//			    				for(Object o: F.get(t))
+//			    		    	{
+//			    					int fii = (int) o;
+//			    					if(fii < findOutOfFrag(t, c))//跳转时不能跳到操作域之外
+//			    						toList.add(fii);
+//			    		    	}
+//			    			}		  				
+//			    		}
+//			    		
+//			    		setMap(fromList,toList);//设置map[fromList][toList]
+//			    			
+//			    	}
+//			    }
 			    
 	//处理loop回去的情况		    
 			    for(int k=0;k<loopFragment.size();k++)
@@ -427,6 +449,18 @@ public class SD2UppaalMain {
 			    	{
 			    		if(map[i][realEnd]>0 && !islastbreak(i,c+1))//i可以到达reaLend 并且不是该loop的内一层最后一个break
 			    			loopEndList.add(i);
+			    	}
+			    	
+			    	for(int i = start + 1; i < idEnd; i++) {
+			    		if (F1.get(i).contains(realEnd)) {//这种情况是loop里层最下面是一个单域组合片段，则这个单域组合片段上面的消息可以不进入这个单域组合片段直接返回loop的start
+			    			//i 可以一次跳跃 到达realEnd ，那么说明i可以loop回start， 条件要加上跳跃的条件（!opt）
+							F1.get(i).add(start); //添加一次跳跃
+							
+							String condition = jumpCondition[i][realEnd];
+							//添加跳跃条件
+							jumpCondition[i][start] = condition;
+							
+						}
 			    	}
 			    	
 			    	//谁是loop的开头
@@ -444,10 +478,22 @@ public class SD2UppaalMain {
 			    			map[loopEndList.get(i)][loopStartList.get(j)] = loopStartList.get(j);
 			    	
 			    }
+			   // 初始化falseConditions
+			    jumpConditions = new ArrayList<>();
+			    for(int i = 0; i < table.size(); i++) {
+			    	ArrayList<HashSet<String>> arrayListI = new ArrayList<HashSet<String>>();
+			    	for (int j = 0; j < table.size(); j++) {
+						HashSet<String> set = new HashSet<>();
+						arrayListI.add(set);
+					}
+			    	jumpConditions.add(arrayListI);
+			    }
+	//得到 跳跃条件		    
+			    fixF1ForFalseCondition();
 	//在此处设置终态 
 			    for(int i=0;i<locationList.size();i++)
 			    {
-			    	if(map[i][locationList.size()-1] >= 1)
+			    	if(map[i][locationList.size()] >= 1)
 			    		locationList.get(i).setFnal(true);
 			    }
 	
@@ -500,76 +546,8 @@ public class SD2UppaalMain {
 							
 							//需要加上opt后else 为 !(opt条件)
 							String elseCondition = "";
-							if (i >= 1 && j >= 2 && i < messageList.size()) {
-								String TypeAndConditionI = getTypeAndnCondition(messageList.get(i - 1));
-								String TypeAndConditionStart = getTypeAndnCondition(messageList.get(i));
-								String TypeAndConditionEnd = getTypeAndnCondition(messageList.get(j - 2));
-								String TypeAndConditionJ = getTypeAndnCondition(messageList.get(j-1));
-								//当TypeAndConditionStart和TypeAndConditionEnd的opt数量相等
-								int optCountI = TypeAndConditionI.split("opt").length - 1;
-								int optCountStart = TypeAndConditionStart.split("opt").length - 1;
-								int optCountEnd = TypeAndConditionEnd.split("opt").length - 1;
-								int optCountJ = TypeAndConditionJ.split("opt").length - 1;
-								if(optCountI == optCountJ && optCountEnd == optCountStart && optCountI < optCountStart ) {
-									//说明i和j之间是opt
-									//对比 TypeAndConditionJ 和 TypeAndConditionEnd & TypeAndConditionStart
-									//多出来的opt条件就是需要添加的!opt条件
-									
-										
-									//J
-									String[] typesJ;
-									String[] conditionsJ;
-									String allTypeJ;
-									String allConditionJ;
-									if(TypeAndConditionJ.equals("")) {
-										typesJ = new String[]{""};
-										conditionsJ = new String[]{""};
-										allTypeJ = "";
-										allConditionJ = "";
-									} else {
-										allTypeJ = TypeAndConditionJ.split("]")[0].substring(1);
-										typesJ = allTypeJ.split("-");
-										allConditionJ = TypeAndConditionJ.split("]")[1];
-										conditionsJ = allConditionJ.split("--");
-									}
-										
-										
-										//start
-										String allTypeStart = TypeAndConditionStart.split("]")[0].substring(1);
-										String[] typesStart = allTypeStart.split("-");
-										String allConditionStart = TypeAndConditionStart.split("]/")[1];
-										String[] conditionsStart = allConditionStart.split("--");
-										
-										//end
-										String allTypeEnd = TypeAndConditionEnd.split("]")[0].substring(1);
-										String[] typesEnd = allTypeEnd.split("-");
-										String allConditionEnd = TypeAndConditionEnd.split("]/")[1];
-										String[] conditionsEnd = allConditionEnd.split("--");
-										
-										//遍历 对比opt的条件 加入 opt片段之后 !opt条件
-										for (int k = 0; k < conditionsEnd.length; k++) {
-											if (typesStart[k].equals("opt") && !allTypeJ.contains(conditionsStart[k])) {
-												//是messageJ不包含的opt条件
-												if (elseCondition != "") {
-													elseCondition = "!(" + conditionsStart[k] + ")--" + elseCondition;
-												} else {
-													elseCondition = "/!(" + conditionsStart[k] + ")";
-												}
-												
-											}
-											if (typesEnd[k].equals("opt") && !allTypeJ.contains(conditionsEnd[k]) 
-													&& !conditionsEnd[k].equals(conditionsStart[k])) {
-												//是messageJ不包含的opt条件
-												if (elseCondition != "") {
-													elseCondition = "!(" + conditionsEnd[k] + ")--" + elseCondition;
-												} else {
-													elseCondition = "/!(" + conditionsEnd[k] + ")";
-												}
-											}
-										}
-									
-								}
-								
+							if (falseConditions[i][j] != null) {
+								elseCondition = falseConditions[i][j];
 							}
 				    		
 							//location 起点
@@ -577,39 +555,35 @@ public class SD2UppaalMain {
 							//location 终点
 							UppaalLocation location=locationList.get(j);
 							UppaalTransition transition = new UppaalTransition();
+							String T1 = messageJ.getT1();
+							String T2 = messageJ.getT2();
 							if(isSelfMessage && receiveOrSend.equals("!"))
 							{  
-								String typeAndCondition = getTypeAndnCondition(messageJ) ;
-								if(!elseCondition.equals("")) {
-									if (typeAndCondition.equals("")) {
-										typeAndCondition = elseCondition;
-									} else {
-										typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
-									}
-								}
-								transition = setTransition(messageJ,m_id++,messageJ.getName()+"!"+typeAndCondition,
-			    	    				lastLocation0.getId(),lastLocation0.getName(),
-			        					location.getId(),    location.getName(),
-				    					"0","0");//如果是自己到自己的消息 则让回来的t1 t2变为0 避免重复计算能源损耗问题
-								template.transitions.add(transition);
+								T1 = "0";
+								T2 = "0";
 								isSelfMessage = false;
 								
-							}else{	
-								String typeAndCondition = getTypeAndnCondition(messageJ) ;
-								if(!elseCondition.equals("")) {
-									if (typeAndCondition.equals("")) {
-										typeAndCondition = elseCondition;
-									} else {
-										typeAndCondition = typeAndCondition.split("]/")[0] + "]/" + elseCondition + "--" + typeAndCondition.split("]/")[1];
-									}
+							}	
+							
+							String typeAndCondition = getTypeAndnCondition(messageJ) ;
+							if(!elseCondition.equals("")) {
+								if (typeAndCondition.equals("null")) {
+									typeAndCondition = elseCondition;
+								} else {
+									typeAndCondition = typeAndCondition + "--"+ elseCondition ;
 								}
-								transition = setTransition(messageJ,m_id++,messageJ.getName()+receiveOrSend+typeAndCondition,
-			    	    				lastLocation0.getId(),lastLocation0.getName(),
-			        					location.getId(),    location.getName(),
-			        					messageJ.getT1(),messageJ.getT2());
-								template.transitions.add(transition);
-		    	    		
 							}
+							transition = setTransition(messageJ,
+									m_id++,
+									messageJ.getName(),
+									receiveOrSend,
+									typeAndCondition,
+		    	    				lastLocation0.getId(),lastLocation0.getName(),
+		        					location.getId(),    location.getName(),
+		        					messageJ.getT1(),messageJ.getT2());
+							template.transitions.add(transition);
+		    	    		
+							
 		    	    		
 		    			}
 		    		}
@@ -630,6 +604,55 @@ public class SD2UppaalMain {
 	    }//遍历diagram结束
 	}//end
 	
+	private static void fixF1ForFalseCondition() {
+		
+		falseConditions = new String[table.size()][table.size()];
+		
+		for(int i = 0; i < jumpCondition.length; i++) {
+			for (int j = 0; j < jumpCondition.length; j++) {
+				if (jumpCondition[i][j] != null) {
+					jumpConditions.get(i).get(j).add(jumpCondition[i][j]);
+				}
+				
+			}
+		}
+		
+		for(int i=0;i<F1.size();i++)//多次跳跃 条件
+		{
+			for(int j=i+1; j<F1.size();j++) {
+				if(F1.get(i).contains(j)) {//如果i能到达j
+					F1.get(i).addAll(F1.get(j));
+					for(int k : F1.get(j)) {
+						jumpConditions.get(i).get(k).addAll(jumpConditions.get(i).get(j));
+						jumpConditions.get(i).get(k).addAll(jumpConditions.get(j).get(k));
+					}
+				}
+			}
+		}
+		int i = 0;
+		for(HashSet<Integer> Gi :G) {// 第i条消息 能到达j
+			for (int j : Gi) {//j 能跳跃到k
+				for (int k : F1.get(j)) {
+					String conditions = new String();
+					//i 到 k 需要添加跳跃条件
+					if (j == k) { // 没有跳跃发生
+						continue;
+					} else {
+						for(String condition : jumpConditions.get(j).get(k)) {
+							conditions += condition  + "&&";
+						}
+					}
+					//去掉 &&
+					if (!conditions.equals("")) {
+						conditions = conditions.substring(0, conditions.length() - 2);
+						falseConditions[i][k] = conditions;
+					}
+				}
+			}
+			i++;
+		}
+	}
+
 	//这条消息 是不是最后break片段的最后一个消息
 	private static boolean islastbreak(int i, int c) {
 		if(table.get(i).get(c).getFragType().equals("break")&&
@@ -729,7 +752,12 @@ public class SD2UppaalMain {
 				temp.setC(c);
 				loopFragment.add(temp);
 			}
-			rt.add(findRightI(i));//遇到alt交接点 往下找
+			
+			int rightI = findRightI(i);
+			//添加falseCondition
+			String condition = table.get(I).get(c).getFragCondition();
+			jumpCondition[I][rightI] = ("!(" + condition + ")");
+			rt.add(rightI);//遇到alt交接点 往下找
 		}
 		else if(fragType.equals( "alt" )|| fragType.equals("par"))//有多个
 		{
@@ -856,14 +884,26 @@ public class SD2UppaalMain {
 		return location;
 	}
 	
-	public static UppaalTransition setTransition(WJMessage messageI, int message_id, String message_name,String string, String source_name,String string2, String target_name, String T1,String T2)
+	public static UppaalTransition setTransition(WJMessage messageI, 
+			int message_id, 
+			String message_name,
+			String receiveOrSend,
+			String typeAndCondition,
+			String sourceId, 
+			String source_name,
+			String targetId, 
+			String target_name, 
+			String T1,String T2 
+			)
 	{
 		UppaalTransition transition = new UppaalTransition();
+		transition.setReceiveOrSend(receiveOrSend);
+		transition.setTypeAndCondition(typeAndCondition);
 		transition.setId(message_id);
 		transition.setNameS(source_name);
 		transition.setNameT(target_name);
-		transition.setSourceId(string);
-		transition.setTargetId(string2);
+		transition.setSourceId(sourceId);
+		transition.setTargetId(targetId);
 		transition.setNameText(message_name);
 		transition.setT1(T1);
 		transition.setT2(T2);
@@ -874,6 +914,9 @@ public class SD2UppaalMain {
 		transition.setSEQTO(messageI.SEQTO);
 		transition.setInString(messageI.inString);
 		transition.setOutString(messageI.outString);
+		transition.setTypeId(messageI.getTypeId());
+		transition.use = messageI.use;
+		transition.def = messageI.def;
 		return transition;
 	}
 	
@@ -903,17 +946,32 @@ public class SD2UppaalMain {
 	{
 		String nCondition = "";
 		String type = "";
+		String typeId = "";
 		String id = messageI.getInFragId();
 		boolean isInSameOpt = false;
+		WJFragment fragment;
 		while(!id.equals("null"))//对所有条件进行交集  
 		{
-			nCondition =   id_fragment.get(id).getFragCondition()+"--"+nCondition; 
-			type = id_fragment.get(id).getFragType()+"-"+type;
-			id=id_fragment.get(id).getBigId();
+			fragment = id_fragment.get(id);
+			nCondition =   fragment.getFragCondition()+"--"+nCondition; 
+			
+			type = fragment.getFragType()+"-"+type;
+			if (fragment.getFragType().equals("alt") || fragment.getFragType().equals("par")) {
+				typeId = fragment.getComId()+"-"+typeId;
+			} else {
+				typeId = fragment.getFragId()+"-"+typeId;
+			}
+			
+			id=fragment.getBigId();
 		}
-		if(type.equals(""))
-		return "";
-		else
-		return "["+type.substring(0,type.length()-1)+"]"+"/"+nCondition.substring(0,nCondition.length()-2);
+		messageI.setTypeId(typeId);
+		
+		if(type.equals("")) {
+			messageI.setConditions("");
+			return "null";
+		} else {
+			messageI.setConditions("["+type.substring(0,type.length()-1)+"]"+"/"+nCondition.substring(0,nCondition.length()-2));
+			return "["+type.substring(0,type.length()-1)+"]"+"/"+nCondition.substring(0,nCondition.length()-2);
+		}
 	}
 }

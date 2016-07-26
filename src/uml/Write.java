@@ -53,9 +53,14 @@ public class Write
 		    	loc.addAttribute("y",yy);
 		    	loc.addAttribute("R1", location.getR1());
 		    	loc.addAttribute("R2", location.getR2());
-		    	loc.addAttribute("timeDuration", location.getTimeDuration());
+		    	if (location.getTimeDuration() == null) {
+		    		loc.addAttribute("timeDuration", "null");
+				} else {
+					loc.addAttribute("timeDuration", location.getTimeDuration());
+				}
+		    	
 		    	loc.addAttribute("Energe",location.getEnerge());
-		    	//当使用顺序图转换到自动机， 此属性表示这个状态属于哪个对象的id，若是对象图到自动机 ，则可以无视这个属性
+		    	loc.addAttribute("final", location.getFnal().toString());
 		    	
 		    		
 		    	//loc.addElement("R1").setText(location.getR1());
@@ -64,8 +69,8 @@ public class Write
 		    	Element name2=loc.addElement("name");
 		    	name2.addAttribute("x", xx);
 		    	name2.addAttribute("y", yy);
-		    	name2.setText(location.getObjName()+":"+location.getName());
-		    	//+"|"+location.getTimeDuration());
+		    	name2.setText(location.getObjName()+":"+location.getName()
+		    	+"|"+location.getTimeDuration());
 		    	
 		    	/*Element name3=loc.addElement("R1R2");
 		    	name3.addAttribute("x", xx);
@@ -91,8 +96,11 @@ public class Write
 		    	tran.addAttribute("id", "tran_id"+transition.getSourceId()+transition.getTargetId());
 		    	tran.addAttribute("T1", transition.getT1());
 		    	tran.addAttribute("T2", transition.getT2());
-				tran.addAttribute("timeDuration", transition.getSEQDO());
-				
+		    	if (transition.getSEQDO() == null) {
+		    		tran.addAttribute("timeDuration", "null");
+				} else {
+					tran.addAttribute("timeDuration", transition.getSEQDO());
+				}
 //				
 //				tran.addElement("label").addAttribute("kind","guard")
 //										.addText("DCBM = " + transition.getDCBM()+","+
@@ -102,10 +110,42 @@ public class Write
 //												"SEQTO = " + transition.getSEQTO()
 //												);
 		    	tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).addAttribute("y", yy).setText(
-		    			transition.getNameText()+
-		    			"\ntime:"+transition.getSEQDO()+
-		    			"\nin:"+transition.inString+
-		    			"\nout:"+transition.outString);
+		    			"#name:"+transition.getNameText()+
+		    			"#receiveOrSend:"+transition.getReceiveOrSend()+
+		    			"#typeAndCondition:"+transition.getTypeAndCondition()+
+		    			"#time:"+transition.getSEQDO()+
+		    			"#in:"+transition.inString+
+		    			"#out:"+transition.outString);
+		    	tran.addAttribute("name", transition.getNameText());
+		    	tran.addAttribute("receiveOrSend", transition.getReceiveOrSend());
+		    	if (transition.getTypeAndCondition().equals("null")) {
+		    		tran.addAttribute("type", "null");
+				} else {
+					tran.addAttribute("type", transition.getTypeAndCondition().split("/")[0]);
+				}
+		    	if (transition.getTypeAndCondition().equals("null")) {
+		    		tran.addAttribute("condition", "null");
+				} else {
+					if (transition.getTypeAndCondition().contains("/")) {
+						tran.addAttribute("condition", transition.getTypeAndCondition().split("/")[1]);
+					} else {
+						tran.addAttribute("condition", transition.getTypeAndCondition());
+
+					}
+					
+				}
+		    	
+		    	if (transition.inString == null) {
+		    		transition.inString = "null";
+				}
+		    	if (transition.outString == null) {
+		    		transition.outString = "null";
+				}
+		    	tran.addAttribute("in", transition.inString);
+		    	tran.addAttribute("out", transition.outString);
+		    	tran.addAttribute("use", transition.use);
+		    	tran.addAttribute("def", transition.def);
+		    	tran.addAttribute("typeId", transition.getTypeId());
 		    	//tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).
 		    	//addAttribute("y", yy).setText(
 		    	//		transition.getNameText()+"|"+transition.getSEQDO());
