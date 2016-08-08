@@ -9,8 +9,8 @@ public class UppaalLocation {
 	String R2 = "0";	//资源2占用
 	String Energe = "0";//单位时间损耗的能源
 	String ObjId = "NULL";//对象的EAid
-	String ObjName = "";//对象名
-	String timeDuration;//时间约束
+	String ObjName ="null";//对象名
+	String timeDuration = "null";//时间约束
 	
 	public String getTimeDuration() {
 		return timeDuration;

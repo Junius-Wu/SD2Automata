@@ -2,7 +2,7 @@ package uml;
 
 import java.util.ArrayList;
 
-public class UppaalTemPlate 
+public class UppaalTemplate 
 {
 	
 	String declaration;
