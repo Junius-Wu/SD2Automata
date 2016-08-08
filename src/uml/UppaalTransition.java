@@ -21,24 +21,15 @@ public class UppaalTransition
 	String SEQTC="null";//4
 	String SEQTO="null";//5
 	
-	String inString="null";//输入
-	String outString="null";//输出
+	String inString;//输入
+	String outString;//输出
 	
-	String RESET="null";//时钟复位
-	
-	String use="null";
-	String def="null";
+	String use;
+	String def;
 	
 	String T1 = "0";	
 	String T2 = "0";
 	
-	
-	public String getRESET() {
-		return RESET;
-	}
-	public void setRESET(String rESET) {
-		RESET = rESET;
-	}
 	public String getTypeId() {
 		return typeId;
 	}

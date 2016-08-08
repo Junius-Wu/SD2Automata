@@ -19,7 +19,6 @@ public class MessageComplete {
 	String outString;
 	String def;
 	String use;
-	String RESET;
 	double pointY;
 	
 	public double getPointY() {

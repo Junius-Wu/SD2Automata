@@ -16,7 +16,7 @@ public class WJMessage implements Cloneable{//消息
     }   
 	String inFragId="null";//在哪个片段中
 	String inFragName="null";
-	String id="null"; 
+	String connectorId="null";//zijide id
 	String sourceId="null";
 	String tragetId="null";
 	String name="null";
@@ -26,9 +26,9 @@ public class WJMessage implements Cloneable{//消息
 	String receiveAndSend = "null";
 	String inString;
 	String outString;
-	String condition;// 条件 a=x--y=z
-	String typeId; // 组合片段的[id-id-id]
-	String RESET;
+	String conditions;
+	String typeId;
+	
 	String use;
 	String def;
 	
@@ -55,10 +55,10 @@ public class WJMessage implements Cloneable{//消息
 		this.typeId = typeId;
 	}
 	public String getConditions() {
-		return condition;
+		return conditions;
 	}
 	public void setConditions(String conditions) {
-		this.condition = conditions;
+		this.conditions = conditions;
 	}
 	public double getPointY() {
 		return pointY;
@@ -173,11 +173,11 @@ public class WJMessage implements Cloneable{//消息
 	
 	public String getConnectorId() 
 	{
-		return id;
+		return connectorId;
 	}
 	public void setConnectorId(String connectorId)
 	{
-		this.id = connectorId;
+		this.connectorId = connectorId;
 	}
 	public String getSourceId()
 	{

@@ -21,7 +21,7 @@ import org.dom4j.io.XMLWriter;
 
 public class Write
 {
-	public static void creatXML(String Path,ArrayList<UppaalTemplate> temPlates,HashSet<String> template_instantiations ) throws IOException 
+	public static void creatXML(String Path,ArrayList<UppaalTemPlate> temPlates,HashSet<String> template_instantiations ) throws IOException 
 	{
 		int x=30,y=30;
 		System.out.println("开始生成XML文件");
@@ -29,10 +29,10 @@ public class Write
 		Element nta=document.addElement("nta");  
 		Element declaration=nta.addElement("declaration");
 		declaration.addText("// Place global declarations here.");
-		Iterator<UppaalTemplate> templateIterator=temPlates.iterator();
+		Iterator<UppaalTemPlate> templateIterator=temPlates.iterator();
 		while(templateIterator.hasNext())
 		{
-			UppaalTemplate temlPlate=templateIterator.next();
+			UppaalTemPlate temlPlate=templateIterator.next();
 		    Element tem=nta.addElement("template");
 		    Element nameElement=tem.addElement("name");
 		    String xx = String.valueOf(x++);
@@ -48,19 +48,18 @@ public class Write
 		    {
 		    	UppaalLocation location=locationIterator.next();
 		    	Element loc =tem.addElement("location");
-		    	
 		    	loc.addAttribute("id","loc_id"+location.getId());
 		    	loc.addAttribute("x", xx);
 		    	loc.addAttribute("y",yy);
-//		    	loc.addAttribute("R1", location.getR1());
-//		    	loc.addAttribute("R2", location.getR2());
+		    	loc.addAttribute("R1", location.getR1());
+		    	loc.addAttribute("R2", location.getR2());
 		    	if (location.getTimeDuration() == null) {
 		    		loc.addAttribute("timeDuration", "null");
 				} else {
 					loc.addAttribute("timeDuration", location.getTimeDuration());
 				}
 		    	
-//		    	loc.addAttribute("Energe",location.getEnerge());
+		    	loc.addAttribute("Energe",location.getEnerge());
 		    	loc.addAttribute("final", location.getFnal().toString());
 		    	
 		    		
@@ -147,12 +146,6 @@ public class Write
 		    	tran.addAttribute("use", transition.use);
 		    	tran.addAttribute("def", transition.def);
 		    	tran.addAttribute("typeId", transition.getTypeId());
-		    	if (transition.RESET == null) {
-		    		tran.addAttribute("RESET", "null");
-				} else {
-					tran.addAttribute("RESET", transition.RESET);
-				}
-		    	
 		    	//tran.addElement("label").addAttribute("kind",transition.getKind()).addAttribute("x",xx).
 		    	//addAttribute("y", yy).setText(
 		    	//		transition.getNameText()+"|"+transition.getSEQDO());
