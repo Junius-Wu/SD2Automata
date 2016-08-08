@@ -13,6 +13,7 @@ public class ConnectorsClass {
 	String use;
 	String def;
 	double pointY;
+	String RESET;
 	
 	
 	public double getPointY() {

@@ -51,7 +51,7 @@ public class SD2UppaalMain {
 		ArrayList<WJLifeline> lifeLines=new ArrayList<WJLifeline>();//
 		ArrayList<WJMessage> messages=new ArrayList<WJMessage>();
 		ArrayList<WJFragment> fragments=new ArrayList<WJFragment>();
-		ArrayList<UppaalTemPlate> templates=new ArrayList<UppaalTemPlate>();
+		ArrayList<UppaalTemplate> templates=new ArrayList<UppaalTemplate>();
 		
 		
 		HashSet<String > template_names=new HashSet<String>();
@@ -77,9 +77,7 @@ public class SD2UppaalMain {
 	    	
 	    	//获得第i个图
 	    	WJDiagramsData diagramDaraI = DiagramsDataListIterator.next();
-	    	if (diagramDaraI.name.equals("arm_motors_check")) {
-	    		System.out.println("***************************************");
-			}
+	    	
 		    System.out.println("正在处理图名为:"+diagramDaraI.name);
 		   
 		    //初始化
@@ -109,7 +107,7 @@ public class SD2UppaalMain {
 		    id_fragment.put("nothing", y);
 
 		    
-		    	UppaalTemPlate template=new UppaalTemPlate();
+		    	UppaalTemplate template=new UppaalTemplate();
 		    	messageList.clear();//清空数据
 		    	fragmentList.clear();
 		    	table.clear();
@@ -513,6 +511,10 @@ public class SD2UppaalMain {
 			    for(int i=0;i<locationList.size();i++) {
 		    		for(int j=0;j<locationList.size();j++)
 		    		{
+		    			if (map[i][j] == -1) { // 状态的时间约束取自下一条消息  去掉alt操作域之间的时间约束
+		    				// 实际上是 分支的状态可能有两个相同的时间约束 有一条无法读取
+							locationList.get(i).setTimeDuration("null");
+						}
 		    			if(map[i][j] >= 1)
 			    		{
 		    				
@@ -601,6 +603,7 @@ public class SD2UppaalMain {
 		    System.out.println("***************************************");
 		    System.out.println("正在写入图名为"+diagramDaraI.name+"的xml");
 		    Write.creatXML(diagramDaraI.name+".xml",templates,template_names);
+		    WriteForXStream.creatXML(diagramDaraI.name+"ForXStream.xml", templates, template_names);
 	    }//遍历diagram结束
 	}//end
 	
@@ -917,6 +920,7 @@ public class SD2UppaalMain {
 		transition.setTypeId(messageI.getTypeId());
 		transition.use = messageI.use;
 		transition.def = messageI.def;
+		transition.RESET = messageI.RESET;
 		return transition;
 	}
 	
@@ -953,21 +957,38 @@ public class SD2UppaalMain {
 		while(!id.equals("null"))//对所有条件进行交集  
 		{
 			fragment = id_fragment.get(id);
-			nCondition =   fragment.getFragCondition()+"--"+nCondition; 
 			
+			//条件
+			nCondition =   fragment.getFragCondition()+"--"+nCondition; 
+			// 组合片段种类
 			type = fragment.getFragType()+"-"+type;
+			// 组合片段的id （alt和par为comID）
 			if (fragment.getFragType().equals("alt") || fragment.getFragType().equals("par")) {
-				typeId = fragment.getComId()+"-"+typeId;
+				if (typeId .equals("")) {
+					typeId = fragment.getComId();
+				} else {
+					typeId = fragment.getComId()+"-"+typeId;
+				}
+				
 			} else {
-				typeId = fragment.getFragId()+"-"+typeId;
+				if (typeId .equals("")) {
+					typeId = fragment.getFragId();
+				} else {
+					typeId = fragment.getFragId()+"-"+typeId;
+				}
 			}
 			
 			id=fragment.getBigId();
 		}
-		messageI.setTypeId(typeId);
+		if (typeId.equals("")) {
+			messageI.setTypeId("null");
+		} else{
+			messageI.setTypeId(typeId);
+		}
+		
 		
 		if(type.equals("")) {
-			messageI.setConditions("");
+			messageI.setConditions("null");
 			return "null";
 		} else {
 			messageI.setConditions("["+type.substring(0,type.length()-1)+"]"+"/"+nCondition.substring(0,nCondition.length()-2));

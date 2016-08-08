@@ -138,7 +138,9 @@ public class Read
 			connectorsMsg.def = "null";
 			if (elConnector.element("style").attribute("value")!=null) {//io信息
 				String styleValue=elConnector.element("style").attribute("value").getValue();
+// 1111111111111111111111111111				
 				connectorsMsg.setStyleValue(styleValue);
+				// 1.io
 				String io = GetAliasIo(styleValue);
 				String inString = "null";
 				String outString = "null";
@@ -158,7 +160,6 @@ public class Read
 				} catch(Exception e) {
 					
 				}
-				
 				// 只有当有io=in/out 时 outstring和instring才进行设置
 				outString = returnValue;
 				inString = argument;
@@ -167,6 +168,10 @@ public class Read
 				} else if (io != null && io.equals("out")){	
 					connectorsMsg.setOutString(outString);
 				}
+				
+				// 2.RESET
+				String timeReset = GetAliasRESET(styleValue);
+				connectorsMsg.RESET = timeReset;
 			} 
 			umlConnectors.add(connectorsMsg);
 		}
@@ -185,12 +190,14 @@ public class Read
 				ConnectorsClass connectorsI=umlConnectorsIterator.next();
 				if(connectorsI.getConnectorId().equals(messageI.getSequenceMsgId()))
 				{
+//2222222222222222222222222222222222222					
 					messageComplete.sourceId = connectorsI.getSourceId();
 					messageComplete.tragetId = connectorsI.getTragetId();
 					messageComplete.styleValue = connectorsI.getStyleValue();
 					messageComplete.pointY = connectorsI.getPointY();
 					messageComplete.def = connectorsI.def;
 					messageComplete.use = connectorsI.use;
+					messageComplete.RESET = connectorsI.RESET;
 					if (connectorsI.getInString() != null) {
 						messageComplete.setInString(connectorsI.getInString());
 					} else if (connectorsI.getOutString() != null){
@@ -227,7 +234,7 @@ public class Read
 						if(allargI.attributeValue("name").equals("R2"))
 							R2=allargI.element("defaultValue").attributeValue("value");
 					}
-					
+//333333333333333333333333					
 					MessageComplete messageX = new MessageComplete();
 					messageX.setName(messageI.attributeValue("name"));
 					messageX.setConnectorId(messageI.attributeValue("id"));
@@ -246,6 +253,7 @@ public class Read
 					messageX.setR1(R1);
 					messageX.setR2(R2);
 					messageX.setPointY(MC.pointY);
+					messageX.RESET = MC.RESET;
 					MessageIDByKeyWithSourceIDAndTargetID.put(messageX.getSourceId()+messageX.getTragetId(), messageX.getConnectorId());
 					messageList.add(messageX);
 				}
@@ -529,6 +537,7 @@ public class Read
 		//设定message最后的值 0.设定各种值 1.设置5种时间约束 2.在哪个fragment中
 		for(Iterator<MessageComplete> messageListIterator=messageList.iterator();messageListIterator.hasNext();)
 		{
+//4444444444444444444444444444444444444			
 			/////////////////////////EAmessage的遍历
 			MessageComplete EAmessage=messageListIterator.next();
 			WJMessage message=new WJMessage();
@@ -549,6 +558,7 @@ public class Read
 			
 			message.use = EAmessage.use;
 			message.def = EAmessage.def;
+			message.RESET = EAmessage.RESET;
 			if (EAmessage.getInString() != null) {
 				message.setInString(EAmessage.getInString());
 			}
@@ -620,6 +630,8 @@ public class Read
 		
 	}
 	
+
+
 	private void DFSfragmentListForRef(Element fragmentFather,Element operandFather,Element fragment, HashMap<String, String> lastMessageIDByKeyWithDiagramID, Iterator<Element> fragListIterator, HashMap<String, String> messageIDByKeyWithSourceIDAndTargetID) {
 
 		if (fragment.attributeValue("id").equals("EAID_BD50CFEE_3602_40ff_B884_E6438771B272")) {
@@ -697,6 +709,14 @@ public class Read
 		}
 		
 		return null;
+	}
+	
+	private String GetAliasRESET(String styleValue) {
+		if (styleValue.contains("RESET")) {
+			return styleValue.split("RESET=")[1].split(",")[0];
+		} else {
+			return "null";
+		}
 	}
 
 /*method-----------------------------------------------------------*/	
@@ -778,10 +798,6 @@ public class Read
 //			}
 //		}
 		
-		if (diagramData.name.equals("UAV")) {
-			int a = 1;
-			a ++;
-		}
 		
 		//添加要展示的图  复制diagramData
 		WJDiagramsData displaySD = new WJDiagramsData();
@@ -811,7 +827,7 @@ public class Read
 			message.inFragId += "_"+markId;
 		}
 		
-		message.connectorId += "_"+markId;
+		message.id += "_"+markId;
 	}
 
 	private void addFragmentMarkId(WJFragment copyFragment) {
@@ -871,21 +887,35 @@ public class Read
 		try {
 			String DCBM = "null";
 			String SEQDO = "null";
+			if (styleValue.contains("DCBM=")) {
+				DCBM = styleValue.split("DCBM=")[1].split(";")[0];
+				message.setDCBM(DCBM);
+			}
 			
-			String patternString = "DCBM=([A-Za-z0-9]+)([<>]?)(=?)(\\d+)([.]?)(\\d+)s;";
-			Pattern pattern = Pattern.compile(patternString);
-			Matcher matcher = pattern.matcher(styleValue);
-			if (matcher.find()) {
-				DCBM = matcher.group(0).split("DCBM=")[1];
+			if (styleValue.contains("SEQDO=")) {
+				SEQDO = styleValue.split("SEQDO=")[1].split(";")[0];
+				message.setSEQDO(SEQDO);
 			}
-			String patternString1 = "SEQDO=([A-Za-z0-9]+)([<>]?)(=?)(\\d+)([.]?)(\\d+)s;";
-			Pattern pattern1 = Pattern.compile(patternString1);
-			Matcher matcher1 = pattern1.matcher(styleValue);
-			if (matcher1.find()) {
-				SEQDO = matcher1.group(0).split("SEQDO=")[1];
-			}
-			message.setSEQDO(SEQDO);
-			message.setDCBM(DCBM);
+			
+			
+			//   123<=t<=4.3(((\\d+)((.\\d+)?)(m?)s([<>]?)(=?))?)
+//			String patternString 
+//				= "DCBM=((\\d+)(.\\d+)?([<>]?)(=?)(\\s?))?([A-Za-z0-9]+)([<>]?)(=?)(\\d+)((.\\d+)?)(m?)s;";
+//			Pattern pattern = Pattern.compile(patternString);
+//			Matcher matcher = pattern.matcher(styleValue);
+//			if (matcher.find()) {
+//				DCBM = matcher.group(0).split("DCBM=")[1];
+//			}
+//			message.setDCBM(DCBM);
+//			String patternString1 = "SEQDO=((\\d+)(.\\d+)?([<>]?)(=?)(\\s?))?([A-Za-z0-9]+)([<>]?)(=?)(\\d+)((.\\d+)?)(m?)s;";
+//			Pattern pattern1 = Pattern.compile(patternString1);
+//			Matcher matcher1 = pattern1.matcher(styleValue);
+//			if (matcher1.find()) {
+//				SEQDO = matcher1.group(0).split("SEQDO=")[1];
+//			}
+//			message.setSEQDO(SEQDO);
+			
+			
 		} catch (Exception e) {
 			System.out.println("exception:时间约束");
 		}
