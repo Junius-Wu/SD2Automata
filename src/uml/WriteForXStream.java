@@ -18,7 +18,9 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 
-
+/*
+ * 用于XStream转换成类
+ */
 public class WriteForXStream
 {
 	public static void creatXML(String Path,ArrayList<UppaalTemplate> temPlates,HashSet<String> template_instantiations ) throws IOException 
